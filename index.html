@@ -7,260 +7,211 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Jost:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
         /* ==========================================
-           --- 视觉重构：可爱优雅的奶油玫瑰马卡龙色系 ---
+           --- 视觉重构：极致白皙的明亮奶油质感 ---
            ========================================== */
-
         :root {
-            var(--bg-paper): #FFF5F5;
-            var(--text-dark): #5C415D;
-            var(--text-light): #FFFFFF;
-            var(--brass): #E0A96D;
-            var(--brass-dark): #D9727F;
-            var(--accent-purple): #A890CE;
+            --bg-paper: #FFFFFF;
+            --text-dark: #5C415D;
+            --text-light: #FFFFFF;
+            --brass: #E0A96D;
+            --brass-dark: #D9727F;
+            --accent-purple: #A890CE;
         }
 
         body {
             margin: 0; padding: 0; overflow: hidden;
             font-family: 'Playfair Display', 'Georgia', serif;
-            background: linear-gradient(135deg, #FFF5F5 0%, #FDE0D9 100%);
+            /* 绝对锁死的浅色奶油渐变背景 */
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF5F5 100%);
             touch-action: none; position: relative;
-            cursor: default; /* 修复：重置全局鼠标为默认状态 */
+            cursor: default; width: 100vw; height: 100vh;
         }
 
-        /* 修复：仅 3D 容器区域在交互时显示抓取手势 */
         #webgl-container {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1;
             cursor: grab; pointer-events: auto;
         }
         #webgl-container:active { cursor: grabbing; }
 
-        /* --- 1. 电影级加载帷幕 --- */
+        /* ==========================================
+           --- 极致优雅的奢华剧场帷幕 (纯白系) ---
+           ========================================== */
+        .curtain {
+            position: fixed; top: 0; width: 50vw; height: 100vh; z-index: 9998;
+            background: repeating-linear-gradient(to right, transparent, rgba(92, 65, 93, 0.02) 4%, transparent 8%),
+                        linear-gradient(135deg, #FFFFFF 0%, #FFF5F5 100%);
+            transition: transform 2.8s cubic-bezier(0.65, 0, 0.15, 1);
+            box-shadow: inset 0 0 30px rgba(217, 114, 127, 0.03);
+        }
+        #curtain-left {
+            left: 0; transform-origin: left;
+            border-right: 4px solid #E0A96D;
+            box-shadow: inset -15px 0 25px rgba(0,0,0,0.03);
+        }
+        #curtain-right {
+            right: 0; transform-origin: right;
+            border-left: 4px solid #E0A96D;
+            box-shadow: inset 15px 0 25px rgba(0,0,0,0.03);
+        }
+        #curtain-left.open { transform: translateX(-100%); }
+        #curtain-right.open { transform: translateX(100%); }
+
+        /* --- 电影级加载层 --- */
         #loading-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #FFF5F5; z-index: 9999;
+            background: transparent; z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 1.5s ease-in-out, visibility 1.5s;
+            transition: opacity 1.5s ease-in-out;
         }
         .loading-icon {
             width: 45px; height: 45px; fill: #D9727F; animation: pulse 1.5s infinite ease-in-out; margin-bottom: 25px;
-            filter: drop-shadow(0 4px 10px rgba(217, 114, 127, 0.3));
+            filter: drop-shadow(0 4px 10px rgba(217, 114, 127, 0.2));
         }
-        .loading-text {
-            font-family: 'Jost', sans-serif; font-size: 14px; letter-spacing: 6px; color: #5C415D;
-            text-transform: uppercase;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1) translateY(0); }
-            50% { transform: scale(1.05) translateY(-5px); }
-        }
+        .loading-text { font-family: 'Jost', sans-serif; font-size: 14px; letter-spacing: 6px; color: #5C415D; text-transform: uppercase; }
+        @keyframes pulse { 0%, 100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.05) translateY(-5px); } }
 
-        /* 胶片颗粒与暗角 */
+        /* 浅色噪点滤镜，保持透亮 */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.04"/%3E%3C/svg%3E');
-            pointer-events: none; z-index: 2;
-        }
-        body::after {
-            content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle, transparent 40%, rgba(217, 114, 127, 0.15) 150%);
-            pointer-events: none; z-index: 3;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAAAAABhw8h/AAAAAXRSTlMAQObVGgAAAHJJREFUOI2t08ENwCAMQ9E0yv6LxhBQRJ2g+r/E0n/Y42g1Z5zP+r1W18zM0r1Xv4HMWvWczVn11D0yZzVn1VOvH0hmreauejrmnNVZ9dTvXzJndVY9dXvOrOaseur2nFnNWfXU/wEyZ9VTv3vKnNWcVU+9fqB/9Q2f8g84g1tW1AAAAABJRU5ErkJggg==');
+            opacity: 0.02; pointer-events: none; z-index: 2;
         }
 
-        .ui-layer { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 10; pointer-events: none; }
+        /* ==========================================
+           --- 粒子魔法前场 UI ---
+           ========================================== */
+        #intro-ui {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            pointer-events: none; transition: opacity 1.5s ease;
+        }
+        .intro-hint {
+            position: absolute; top: 15%; color: rgba(92, 65, 93, 0.7); font-family: 'Jost', sans-serif;
+            letter-spacing: 4px; font-size: 14px; text-transform: uppercase; animation: pulseHint 2.5s infinite;
+        }
+        #enter-btn {
+            position: absolute; bottom: 15%; padding: 14px 38px; border-radius: 50px;
+            background: rgba(255, 255, 255, 0.8); border: 1.5px solid #5C415D; color: #5C415D;
+            font-family: 'Jost', sans-serif; font-weight: bold; letter-spacing: 3px; font-size: 14px;
+            cursor: pointer; pointer-events: auto; transition: all 0.4s ease; backdrop-filter: blur(8px);
+            opacity: 0; visibility: hidden; transform: translateY(20px);
+        }
+        #enter-btn.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        #enter-btn:hover { background: #5C415D; color: #FFF; box-shadow: 0 8px 20px rgba(92,65,93,0.3); transform: translateY(-3px); }
 
-        /* 修复：彻底断开主页与画廊的重叠点击问题 */
-        .transition-wrapper {
-            position: absolute; width: 100%; height: 100%; pointer-events: none;
-            transition: opacity 0.8s ease, transform 0.8s ease;
-        }
-        .hidden-wrapper {
-            opacity: 0 !important;
-            transform: scale(0.95);
-            visibility: hidden !important; /* 核心修复：彻底使内部元素失去物理判定 */
-            pointer-events: none !important;
-            filter: blur(5px);
-        }
+        /* ==========================================
+           --- 画廊主场 UI ---
+           ========================================== */
+        #main-gallery-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 10; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 1.5s ease; }
+        #main-gallery-ui.show { opacity: 1; visibility: visible; }
 
-        /* 返回主页的专属按钮 (替代之前点空隙返回的设计) */
-        .back-btn {
-            position: fixed; top: 35px; left: 35px;
-            display: flex; align-items: center; gap: 8px;
-            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            padding: 10px 22px; border-radius: 50px; color: #5C415D; font-size: 14px; font-weight: bold;
-            cursor: pointer; z-index: 50; border: 1.5px solid rgba(92, 65, 93, 0.2);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            opacity: 0; visibility: hidden; transform: translateY(-10px);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            pointer-events: none;
-        }
+        .transition-wrapper { position: absolute; width: 100%; height: 100%; pointer-events: none; transition: opacity 0.8s ease, transform 0.8s ease; }
+        .hidden-wrapper { opacity: 0 !important; transform: scale(0.95); visibility: hidden !important; pointer-events: none !important; filter: blur(5px); }
+
+        .back-btn { position: fixed; top: 35px; left: 35px; display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); padding: 10px 22px; border-radius: 50px; color: #5C415D; font-size: 14px; font-weight: bold; cursor: pointer; z-index: 50; border: 1.5px solid rgba(92, 65, 93, 0.2); box-shadow: 0 4px 15px rgba(0,0,0,0.05); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }
         .back-btn.show { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
-        .back-btn:hover { background: #5C415D; color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(92, 65, 93, 0.2); border-color: #5C415D; }
+        .back-btn:hover { background: #5C415D; color: #FFFFFF; transform: translateY(-2px); border-color: #5C415D; }
 
-        /* 右上角：醒目大时钟与生日提醒 */
-        .time-widget {
-            position: absolute; top: 35px; right: 40px; border-bottom: 2px solid #E0A96D; padding-bottom: 8px; text-align: right; z-index: 15; pointer-events: auto;
-        }
-        .birthday-label {
-            display: block; font-size: 16px; color: #D9727F; letter-spacing: 4px; margin-bottom: 5px; font-weight: 600; font-family: 'Jost', sans-serif; text-transform: uppercase; text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
-        }
-        .time-display { font-size: 46px; font-weight: 700; letter-spacing: 4px; color: #5C415D; opacity: 0.85; text-shadow: 2px 2px 0px rgba(255,255,255,0.8); line-height: 1; }
+        .time-widget { position: absolute; top: 35px; right: 40px; border-bottom: 2px solid #E0A96D; padding-bottom: 8px; text-align: right; z-index: 15; pointer-events: auto; }
+        .birthday-label { display: block; font-size: 16px; color: #D9727F; letter-spacing: 4px; margin-bottom: 5px; font-weight: 600; font-family: 'Jost', sans-serif; text-transform: uppercase; }
+        .time-display { font-size: 46px; font-weight: 700; letter-spacing: 4px; color: #5C415D; opacity: 0.85; line-height: 1; }
         .time-blink { animation: blink 1.5s infinite ease-in-out; color: #D9727F; }
 
-        /* 正中央：海报级大字排版 */
         .hero-title { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; pointer-events: auto; }
-        h1 { color: #5C415D; font-size: 55px; margin: 0; letter-spacing: 4px; font-weight: 700; text-shadow: 2px 4px 10px rgba(217, 114, 127, 0.2); line-height: 1.2; }
+        h1 { color: #5C415D; font-size: 55px; margin: 0; letter-spacing: 4px; font-weight: 700; line-height: 1.2; }
         h1 span { display: block; font-size: 30px; color: #D9727F; font-style: italic; font-weight: 500; margin-top: 5px;}
 
-        /* 按钮组 */
         .btn-group { position: absolute; top: 60%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; gap: 20px; pointer-events: auto; }
-        .action-btn { background: rgba(255, 255, 255, 0.5); border: 1.5px solid #5C415D; padding: 12px 28px; border-radius: 50px; color: #5C415D; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.4s ease; letter-spacing: 2px; backdrop-filter: blur(5px); font-family: 'Playfair Display', serif; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .action-btn:hover { background: #5C415D; color: #FFFFFF; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(92, 65, 93, 0.25); border-color: #5C415D; }
-        .action-btn:active { transform: translateY(1px); }
+        .action-btn { background: rgba(255, 255, 255, 0.8); border: 1.5px solid #5C415D; padding: 12px 28px; border-radius: 50px; color: #5C415D; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.4s ease; letter-spacing: 2px; backdrop-filter: blur(5px); font-family: 'Playfair Display', serif; }
+        .action-btn:hover { background: #5C415D; color: #FFFFFF; transform: translateY(-3px); }
 
-        /* 边缘可爱要素：猫咪 */
-        .cute-cat {
-            position: absolute; left: 50%; bottom: -15px; transform: translateX(-50%); width: 85px; height: 85px; z-index: 20;
-            filter: drop-shadow(0px -4px 8px rgba(92, 65, 93, 0.25)); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: auto; cursor: pointer;
-        }
+        .cute-cat { position: absolute; left: 50%; bottom: -15px; transform: translateX(-50%); width: 85px; height: 85px; z-index: 20; filter: drop-shadow(0px -4px 8px rgba(92, 65, 93, 0.25)); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: auto; cursor: pointer; }
         .cute-cat:hover { transform: translate(-50%, -25px) rotate(3deg); }
         .cat-body { fill: #2A212A; }
         .cat-eye { position: absolute; top: 38px; left: 26px; width: 5px; height: 5px; background: #FFD166; border-radius: 50%; animation: wink 4s infinite; box-shadow: 0 0 6px #FFD166; }
         .cat-eye.right { left: auto; right: 26px; }
-        @keyframes wink { 0%, 95%, 100% { transform: scaleY(1); } 97.5% { transform: scaleY(0.1); } }
 
-        /* --- 2. 隐藏的毛玻璃信件彩蛋 --- */
-        #secret-letter-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100;
-            background: rgba(255, 245, 245, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            display: flex; justify-content: center; align-items: center;
-            opacity: 0; visibility: hidden; transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            pointer-events: none;
-        }
+        #secret-letter-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100; background: rgba(255, 245, 245, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }
         #secret-letter-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
-
-        .letter-paper {
-            background: rgba(255, 255, 255, 0.85); border: 1px solid #FFFFFF; border-radius: 20px;
-            padding: 50px; width: 80vw; max-width: 500px; max-height: 80vh; overflow-y: auto;
-            box-shadow: 0 25px 50px rgba(92, 65, 93, 0.15); position: relative;
-            transform: translateY(50px) scale(0.9); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            pointer-events: auto;
-        }
+        .letter-paper { background: rgba(255, 255, 255, 0.95); border: 1px solid #FFFFFF; border-radius: 20px; padding: 50px; width: 80vw; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(92, 65, 93, 0.15); position: relative; transform: translateY(50px) scale(0.9); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: auto; }
         #secret-letter-overlay.show .letter-paper { transform: translateY(0) scale(1); }
-
-        .close-letter-btn {
-            position: absolute; top: 20px; right: 25px; font-size: 24px; color: #D9727F; cursor: pointer;
-            transition: transform 0.3s; font-family: sans-serif; pointer-events: auto;
-        }
+        .close-letter-btn { position: absolute; top: 20px; right: 25px; font-size: 24px; color: #D9727F; cursor: pointer; transition: transform 0.3s; font-family: sans-serif; pointer-events: auto; }
         .close-letter-btn:hover { transform: rotate(90deg); color: #5C415D; }
-
         .letter-content h2 { font-family: 'Playfair Display', serif; color: #D9727F; margin-top: 0; margin-bottom: 25px; letter-spacing: 2px;}
         .letter-content p { font-family: 'Georgia', serif; font-size: 16px; color: #5C415D; line-height: 1.8; letter-spacing: 1px; margin-bottom: 10px;}
-
-        /* B站手书链接 */
-        .letter-link {
-            display: inline-block; margin: 10px 0; padding: 10px 24px;
-            background: rgba(217, 114, 127, 0.1); color: #D9727F; cursor: pointer;
-            text-decoration: none; border-radius: 12px; font-weight: bold;
-            font-family: 'Jost', sans-serif; letter-spacing: 1px;
-            border: 1px solid rgba(217, 114, 127, 0.3); transition: all 0.3s ease;
-        }
+        .letter-link { display: inline-block; margin: 10px 0; padding: 10px 24px; background: rgba(217, 114, 127, 0.1); color: #D9727F; cursor: pointer; text-decoration: none; border-radius: 12px; font-weight: bold; font-family: 'Jost', sans-serif; letter-spacing: 1px; border: 1px solid rgba(217, 114, 127, 0.3); transition: all 0.3s ease; }
         .letter-link:hover { background: #D9727F; color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 8px 15px rgba(217, 114, 127, 0.3); }
-
-        /* 音频播放器 */
         .letter-audio-wrapper { display: flex; flex-direction: column; gap: 15px; margin: 25px 0; }
-        .audio-item {
-            background: rgba(217, 114, 127, 0.05); padding: 15px; border-radius: 12px;
-            border: 1px dashed rgba(217, 114, 127, 0.4); pointer-events: auto;
-        }
-        .audio-label {
-            display: block; font-family: 'Jost', sans-serif; font-size: 13px; color: #D9727F;
-            margin-bottom: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
-        }
-        .audio-item audio {
-            width: 100%; height: 35px; outline: none; border-radius: 50px;
-            filter: sepia(0.2) hue-rotate(-30deg) saturate(1.2) contrast(1.1) opacity(0.85); transition: opacity 0.3s;
-        }
+        .audio-item { background: rgba(217, 114, 127, 0.05); padding: 15px; border-radius: 12px; border: 1px dashed rgba(217, 114, 127, 0.4); pointer-events: auto; }
+        .audio-label { display: block; font-family: 'Jost', sans-serif; font-size: 13px; color: #D9727F; margin-bottom: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+        .audio-item audio { width: 100%; height: 35px; outline: none; border-radius: 50px; filter: sepia(0.2) hue-rotate(-30deg) saturate(1.2) contrast(1.1) opacity(0.85); transition: opacity 0.3s; }
         .audio-item audio:hover { opacity: 1; }
 
-        /* ==========================================
-           --- 修复与进阶：四周点缀互动系统 ---
-           ========================================== */
-        .cute-deco {
-            position: absolute; z-index: 25; opacity: 0.8;
-            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
-            pointer-events: auto; cursor: pointer; /* 设置为专属的可点击小手状态 */
-            transition: filter 0.3s ease;
-        }
-        /* 悬停时的光晕提示，诱导用户点击 */
-        .cute-deco:hover {
-            filter: drop-shadow(0 0 12px rgba(217, 114, 127, 0.7)) brightness(1.1);
-        }
-
+        /* 四周点缀系统 */
+        .cute-deco { position: absolute; z-index: 25; opacity: 0.8; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1)); pointer-events: auto; cursor: pointer; transition: filter 0.3s ease; }
+        .cute-deco:hover { filter: drop-shadow(0 0 12px rgba(217, 114, 127, 0.7)) brightness(1.1); }
         .deco-envelope { top: 15%; right: 12%; width: 45px; fill: #E0A96D; }
         .deco-plane { top: 20%; left: 15%; width: 50px; fill: #A890CE; opacity: 0.6;}
         .deco-star { top: 60%; right: 18%; width: 25px; fill: #D9727F; }
         .deco-moon { bottom: 25%; left: 10%; width: 35px; fill: #E0A96D; opacity: 0.5;}
 
-        /* 背景缓慢浮动动画 (绑定在包装层上，防止与点击动画冲突) */
-        .float-wrap {
-            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
-            pointer-events: none; /* 让子元素继承鼠标事件 */
-        }
+        .float-wrap { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
         .float-wrap > svg { animation: floatSlow 6s ease-in-out infinite; }
         .float-wrap.reverse > svg { animation: floatSlow 8s ease-in-out infinite reverse; }
         .float-wrap.delay > svg { animation: floatSlow 7s ease-in-out infinite 1s; }
-
         @keyframes floatSlow { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-15px) rotate(5deg); } }
 
-        /* --- 点击触发的专属特效动画 --- */
-        /* 1. 信封翻转 */
-        @keyframes envelopeFlip {
-            0% { transform: perspective(400px) rotateY(0deg) scale(1); filter: brightness(1); }
-            50% { transform: perspective(400px) rotateY(180deg) scale(1.3); filter: brightness(1.2); }
-            100% { transform: perspective(400px) rotateY(360deg) scale(1); filter: brightness(1); }
-        }
+        @keyframes envelopeFlip { 0% { transform: perspective(400px) rotateY(0deg) scale(1); filter: brightness(1); } 50% { transform: perspective(400px) rotateY(180deg) scale(1.3); filter: brightness(1.2); } 100% { transform: perspective(400px) rotateY(360deg) scale(1); filter: brightness(1); } }
         .anim-envelope { animation: envelopeFlip 0.8s ease-out forwards !important; }
-
-        /* 2. 纸飞机极速飞行 */
-        @keyframes planeFly {
-            0% { transform: translate(0, 0) scale(1) rotate(-5deg); opacity: 0.6; }
-            40% { transform: translate(80vw, -60vh) scale(0.8) rotate(20deg); opacity: 0; }
-            41% { transform: translate(-50vw, 40vh) scale(0.5) rotate(-20deg); opacity: 0; }
-            100% { transform: translate(0, 0) scale(1) rotate(-5deg); opacity: 0.6; }
-        }
+        @keyframes planeFly { 0% { transform: translate(0, 0) scale(1) rotate(-5deg); opacity: 0.6; } 40% { transform: translate(80vw, -60vh) scale(0.8) rotate(20deg); opacity: 0; } 41% { transform: translate(-50vw, 40vh) scale(0.5) rotate(-20deg); opacity: 0; } 100% { transform: translate(0, 0) scale(1) rotate(-5deg); opacity: 0.6; } }
         .anim-plane { animation: planeFly 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards !important; }
-
-        /* 3. 星星闪烁自转 */
-        @keyframes starTwinkle {
-            0% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.6) rotate(180deg); filter: drop-shadow(0 0 15px #D9727F) brightness(1.5); }
-            100% { transform: scale(1) rotate(360deg); }
-        }
+        @keyframes starTwinkle { 0% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.6) rotate(180deg); filter: drop-shadow(0 0 15px #D9727F) brightness(1.5); } 100% { transform: scale(1) rotate(360deg); } }
         .anim-star { animation: starTwinkle 0.8s ease-in-out forwards !important; }
-
-        /* 4. 月亮摇晃 */
-        @keyframes moonRock {
-            0% { transform: rotate(0deg) scale(1); }
-            25% { transform: rotate(-35deg) scale(1.1); }
-            50% { transform: rotate(15deg) scale(1.1); }
-            75% { transform: rotate(-10deg) scale(1.1); }
-            100% { transform: rotate(0deg) scale(1); }
-        }
+        @keyframes moonRock { 0% { transform: rotate(0deg) scale(1); } 25% { transform: rotate(-35deg) scale(1.1); } 50% { transform: rotate(15deg) scale(1.1); } 75% { transform: rotate(-10deg) scale(1.1); } 100% { transform: rotate(0deg) scale(1); } }
         .anim-moon { animation: moonRock 0.8s ease-in-out forwards !important; }
 
-
-        /* 滑动提示 */
         #swipeHint { position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); color: #D9727F; font-family: 'Playfair Display', serif; font-size: 14px; pointer-events: none; z-index: 5; letter-spacing: 4px; opacity: 0; visibility: hidden; transition: opacity 0.5s ease, visibility 0.5s ease; }
         #swipeHint.show-hint { opacity: 0.8; visibility: visible; animation: pulseHint 2s infinite; }
         @keyframes pulseHint { 0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.5; } 50% { transform: translateX(-50%) scale(1.05); opacity: 0.9; } }
 
-        /* 移动端适配 */
+        /* ==========================================
+           --- 极致浪漫：程序员式复古终端彩蛋 ---
+           ========================================== */
+        #terminal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(10, 10, 10, 0.96); backdrop-filter: blur(10px);
+            z-index: 100000; display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+        #terminal-overlay.show {
+            opacity: 1; visibility: visible; pointer-events: auto;
+        }
+        #terminal-content {
+            width: 90vw; max-width: 800px; height: 80vh; overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace; color: #00FF41;
+            font-size: 15px; line-height: 1.8; text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+            white-space: pre-wrap; padding: 20px; box-sizing: border-box;
+            border: 1px solid rgba(0, 255, 65, 0.3); border-radius: 8px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .term-cursor {
+            display: inline-block; width: 10px; height: 18px; background-color: #00FF41;
+            animation: blinkTerm 1s step-end infinite; vertical-align: bottom; margin-left: 2px;
+        }
+        .term-hint {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            color: rgba(0, 255, 65, 0.5); font-family: 'Courier New', Courier, monospace;
+            font-size: 12px; pointer-events: none; letter-spacing: 1px;
+        }
+        @keyframes blinkTerm { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
         @media (max-width: 600px) {
             h1 { font-size: 38px; } h1 span { font-size: 20px; } .hero-title { top: 38%; }
             .btn-group { top: 55%; flex-direction: column; width: 70%; gap: 15px;}
@@ -269,6 +220,8 @@
             .cute-deco { opacity: 0.5; } #swipeHint { bottom: 200px; } .letter-paper { padding: 30px; }
             .letter-link { padding: 8px 16px; font-size: 13px; }
             .back-btn { top: 20px; left: 20px; padding: 8px 18px; font-size: 13px; }
+            .intro-hint { top: 25%; font-size: 12px; }
+            #terminal-content { font-size: 12px; }
         }
     </style>
 </head>
@@ -281,33 +234,38 @@
         <div class="loading-text">Preparing Surprise For Risu...</div>
     </div>
 
+    <div id="curtain-left" class="curtain"></div>
+    <div id="curtain-right" class="curtain"></div>
+
     <div id="webgl-container"></div>
 
-    <div id="backBtn" class="back-btn">
-        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-        返回主页
+    <div id="intro-ui">
+        <div class="intro-hint">拖拽旋转视角 / 鼠标轻触星尘</div>
+        <button id="enter-btn">✨ 进入专属画廊 ✨</button>
     </div>
 
-    <div class="float-wrap"><svg class="cute-deco deco-envelope" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"/></svg></div>
-    <div class="float-wrap reverse"><svg class="cute-deco deco-plane" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z"/></svg></div>
-    <div class="float-wrap delay"><svg class="cute-deco deco-star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z"/></svg></div>
-    <div class="float-wrap"><svg class="cute-deco deco-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a9.93 9.93 0 0 0-3.97.83 7.82 7.82 0 0 1 0 16.34A9.93 9.93 0 0 0 12 22a10 10 0 0 0 0-20z"/></svg></div>
+    <div id="main-gallery-ui" class="main-ui-layer">
 
-    <div id="swipeHint"> 左右滑动 </div>
+        <div id="backBtn" class="back-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            返回主页
+        </div>
 
-    <div class="ui-layer">
+        <div class="float-wrap"><svg class="cute-deco deco-envelope" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"/></svg></div>
+        <div class="float-wrap reverse"><svg class="cute-deco deco-plane" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z"/></svg></div>
+        <div class="float-wrap delay"><svg class="cute-deco deco-star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z"/></svg></div>
+        <div class="float-wrap"><svg class="cute-deco deco-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a9.93 9.93 0 0 0-3.97.83 7.82 7.82 0 0 1 0 16.34A9.93 9.93 0 0 0 12 22a10 10 0 0 0 0-20z"/></svg></div>
+
+        <div id="swipeHint"> 左右滑动 </div>
+
         <div class="transition-wrapper" id="cardWrapper">
             <div class="time-widget" id="timeWidget">
                 <span class="birthday-label">今天是你的生日</span>
-                <div class="time-display">
-                    <span id="hour">00</span><span class="time-blink">:</span><span id="minute">00</span>
-                </div>
+                <div class="time-display"><span id="hour">00</span><span class="time-blink">:</span><span id="minute">00</span></div>
             </div>
-
             <div class="hero-title">
                 <h1>Happy Birthday<br><span>Dear Risu</span></h1>
             </div>
-
             <div class="btn-group">
                 <button id="scatterBtn" class="action-btn">查看图片</button>
                 <button id="uploadBtn" class="action-btn">放入相片</button>
@@ -321,350 +279,576 @@
             </svg>
             <div class="cat-eye"></div><div class="cat-eye right"></div>
         </div>
-    </div>
 
-    <div id="secret-letter-overlay">
-        <div class="letter-paper">
-            <div class="close-letter-btn" id="close-letter">✖</div>
-            <div class="letter-content">
-                <h2>致 亲爱的 Risu,</h2>
-                <p>
-                    生日快乐！<br><br>
-                    这是一个只属于你的生日网站<br><br>
-                    虽然只有一些展示的功能没什么用<br><br>
-                    上面你可以自己选择放一些图片进去展示<br><br>
-                    展示界面里边也可以点开看<br><br>
-                    这是我和月音给你的生日歌<br>
-                </p>
-
-                <div class="letter-audio-wrapper">
-                    <div class="audio-item">
-                        <span class="audio-label">🎵 我给你的生日歌</span>
-                        <audio controls><source src="/static/my_song.mp3" type="audio/mpeg"></audio>
+        <div id="secret-letter-overlay">
+            <div class="letter-paper">
+                <div class="close-letter-btn" id="close-letter">✖</div>
+                <div class="letter-content">
+                    <h2>致 亲爱的 Risu,</h2>
+                    <p>生日快乐！<br><br>这是一个只属于你的生日网站<br><br>虽然只有一些展示的功能没什么用<br><br>上面你可以自己选择放一些图片进去展示<br><br>展示界面里边也可以点开看<br><br>这是我和月音给你的生日歌<br></p>
+                    <div class="letter-audio-wrapper">
+                        <div class="audio-item">
+                            <span class="audio-label">🎵 我给你的生日歌</span>
+                            <audio id="music1" controls><source src="/static/my_song.mp3" type="audio/mpeg"></audio>
+                        </div>
+                        <div class="audio-item">
+                            <span class="audio-label">🎶 月音给你的生日歌</span>
+                            <audio controls><source src="/static/friends_song.mp3" type="audio/mpeg"></audio>
+                        </div>
                     </div>
-                    <div class="audio-item">
-                        <span class="audio-label">🎶 月音给你的生日歌</span>
-                        <audio controls><source src="/static/friends_song.mp3" type="audio/mpeg"></audio>
-                    </div>
+                    <a href="https://www.bilibili.com/video/BV1pvu9zhE4Q/?share_source=copy_web&vd_source=9cd4c654d371bc176f64e778df719c7d" target="_blank" class="letter-link">✨ 点击这里跳转绝美手书 ✨</a>
+                    <p><br>—— sw</p>
                 </div>
-
-                <a href="https://www.bilibili.com/video/BV1pvu9zhE4Q/?share_source=copy_web&vd_source=9cd4c654d371bc176f64e778df719c7d" target="_blank" class="letter-link">✨ 点击这里跳转绝美手书 ✨</a>
-
-                <p>
-                    <br>
-                    —— sw
-                </p>
             </div>
         </div>
     </div>
 
+    <div id="terminal-overlay">
+        <div id="terminal-content"></div>
+        <div class="term-hint">[ 按 ESC 或 双击屏幕 退出 ]</div>
+    </div>
+
     <script>
-        // --- 0. 加载帷幕与彩蛋逻辑 ---
-        window.addEventListener('load', () => {
+        // =======================================================
+        // 【核心时钟修复】：确保无论何时加载，时间实时走动
+        // =======================================================
+        function updateTimeWidget() {
+            const now = new Date();
+            const hElement = document.getElementById('hour');
+            const mElement = document.getElementById('minute');
+            if (hElement && mElement) {
+                hElement.innerText = String(now.getHours()).padStart(2, '0');
+                mElement.innerText = String(now.getMinutes()).padStart(2, '0');
+            }
+        }
+
+        // =======================================================
+        // 【系统架构】：全局背景透明，100% 呈现 CSS 的偏白明亮背景
+        // =======================================================
+        const container = document.getElementById('webgl-container');
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        renderer.setClearColor(0x000000, 0);
+        container.appendChild(renderer.domElement);
+
+        let appState = 'INTRO';
+
+        // =======================================================
+        // 场景 A：极度精细的魔法粒子开场
+        // =======================================================
+        const introScene = new THREE.Scene();
+        introScene.background = null;
+
+        const introCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 3000);
+        introCamera.position.z = 800;
+
+        const introControls = new THREE.OrbitControls(introCamera, renderer.domElement);
+        introControls.enableDamping = true;
+        introControls.dampingFactor = 0.05;
+        introControls.enableZoom = false;
+
+        let textParticles;
+        let isAssembling = false;
+
+        function createParticleText() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1200; canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'black'; ctx.fillRect(0, 0, 1200, 600);
+            ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+            ctx.font = 'italic bold 120px "Playfair Display", serif';
+            ctx.fillText('Happy Birthday', 600, 220);
+            ctx.font = 'italic bold 140px "Playfair Display", serif';
+            ctx.fillText('to you, Risu', 600, 390);
+
+            const imgData = ctx.getImageData(0, 0, 1200, 600).data;
+            const positions = []; const originalPositions = []; const velocities = []; const colors = [];
+
+            const palette = [new THREE.Color(0x5C415D), new THREE.Color(0xD9727F), new THREE.Color(0x7A5B80), new THREE.Color(0xE0A96D)];
+            const scale = window.innerWidth < 600 ? 0.45 : 1.0;
+
+            for (let y = 0; y < 600; y += 2) {
+                for (let x = 0; x < 1200; x += 2) {
+                    if (imgData[(y * 1200 + x) * 4] > 128) {
+                        const px = (x - 600) * scale;
+                        const py = -(y - 300) * scale;
+                        const pz = (Math.random() - 0.5) * 20;
+
+                        const sx = px + (Math.random() - 0.5) * 3500;
+                        const sy = py + (Math.random() - 0.5) * 3500;
+                        const sz = pz + (Math.random() - 0.5) * 3500;
+
+                        positions.push(sx, sy, sz);
+                        originalPositions.push(px, py, pz);
+                        velocities.push(0, 0, 0);
+
+                        const c = palette[Math.floor(Math.random() * palette.length)];
+                        colors.push(c.r, c.g, c.b);
+                    }
+                }
+            }
+
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geo.setAttribute('originalPosition', new THREE.Float32BufferAttribute(originalPositions, 3));
+            geo.setAttribute('velocity', new THREE.Float32BufferAttribute(velocities, 3));
+            geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            const mat = new THREE.PointsMaterial({
+                size: window.innerWidth < 600 ? 1.5 : 1.8,
+                vertexColors: true, transparent: true, opacity: 0.95,
+                sizeAttenuation: true,
+                blending: THREE.NormalBlending
+            });
+
+            textParticles = new THREE.Points(geo, mat);
+            introScene.add(textParticles);
+        }
+        createParticleText();
+
+        const raycasterIntro = new THREE.Raycaster();
+        const mouseIntro = new THREE.Vector2(-1000, -1000);
+        const planeZ0 = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+        const pointOfIntersection = new THREE.Vector3();
+
+        window.addEventListener('mousemove', (e) => {
+            if(appState !== 'INTRO') return;
+            mouseIntro.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseIntro.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // =======================================================
+        // 剧场帷幕与开场控制
+        // =======================================================
+        window.addEventListener('DOMContentLoaded', () => {
+            setInterval(updateTimeWidget, 1000);
+            updateTimeWidget();
+
             setTimeout(() => {
                 const loader = document.getElementById('loading-screen');
                 loader.style.opacity = '0';
                 setTimeout(() => {
-                    loader.style.visibility = 'hidden';
-                    fireConfetti();
+                    loader.style.display = 'none';
+
+                    document.getElementById('curtain-left').classList.add('open');
+                    document.getElementById('curtain-right').classList.add('open');
+
+                    setTimeout(() => {
+                        isAssembling = true;
+                        setTimeout(() => {
+                            document.getElementById('enter-btn').classList.add('show');
+                        }, 5000);
+                    }, 1200);
+
                 }, 1500);
+            }, 800);
+        });
+
+        document.getElementById('enter-btn').addEventListener('click', () => {
+            const flash = document.createElement('div');
+            flash.style.position = 'fixed'; flash.style.top = '0'; flash.style.left = '0';
+            flash.style.width = '100vw'; flash.style.height = '100vh';
+            flash.style.backgroundColor = '#FFFFFF';
+            flash.style.zIndex = '9999';
+            flash.style.opacity = '0'; flash.style.transition = 'opacity 1s ease';
+            document.body.appendChild(flash);
+
+            flash.offsetHeight;
+            flash.style.opacity = '1';
+
+            setTimeout(() => {
+                appState = 'MAIN';
+                document.getElementById('intro-ui').style.display = 'none';
+                document.getElementById('main-gallery-ui').classList.add('show');
+
+                const bgm = document.getElementById('music1');
+                if(bgm) bgm.play().catch(e=>console.log("Audio prevented"));
+
+                flash.style.opacity = '0';
+                setTimeout(() => {
+                    flash.remove();
+                    fireMainConfetti();
+                }, 1000);
             }, 1000);
         });
 
-        // ==========================================
-        // 【细化互动】：点缀元素的点击交互系统
-        // ==========================================
-        const decos = [
-            { selector: '.deco-plane', animClass: 'anim-plane' },
-            { selector: '.deco-envelope', animClass: 'anim-envelope', hasConfetti: true },
-            { selector: '.deco-star', animClass: 'anim-star' },
-            { selector: '.deco-moon', animClass: 'anim-moon' }
-        ];
 
-        decos.forEach(item => {
-            const el = document.querySelector(item.selector);
-            if (!el) return;
-            el.addEventListener('click', () => {
-                if (el.classList.contains(item.animClass)) return; // 正在动画中则不打断
+        // =======================================================
+        // 场景 B：纯白马卡龙画廊 (Main Scene)
+        // =======================================================
+        const mainScene = new THREE.Scene();
+        mainScene.fog = new THREE.FogExp2(0xFFFFFF, 0.0012);
+        mainScene.background = null;
 
-                el.classList.add(item.animClass);
-
-                // 信封专属微型彩带爆炸
-                if (item.hasConfetti) {
-                    const rect = el.getBoundingClientRect();
-                    confetti({
-                        particleCount: 20,
-                        spread: 50,
-                        origin: {
-                            x: (rect.left + rect.width / 2) / window.innerWidth,
-                            y: (rect.top + rect.height / 2) / window.innerHeight
-                        },
-                        colors: ['#E0A96D', '#D9727F', '#A890CE'],
-                        zIndex: 100
-                    });
-                }
-
-                // 动画结束自动恢复状态
-                el.addEventListener('animationend', () => {
-                    el.classList.remove(item.animClass);
-                }, { once: true });
-            });
-        });
-
-        // 隐藏信件的点击事件
-        const catTrigger = document.getElementById('cat-trigger');
-        const letterOverlay = document.getElementById('secret-letter-overlay');
-        const closeLetterBtn = document.getElementById('close-letter');
-
-        catTrigger.addEventListener('click', () => {
-            letterOverlay.classList.add('show');
-        });
-        closeLetterBtn.addEventListener('click', () => {
-            letterOverlay.classList.remove('show');
-        });
-
-        // 全局大礼花筒特效
-        function fireConfetti() {
-            const duration = 4000;
-            const end = Date.now() + duration;
-            (function frame() {
-                const macaronColors = ['#D9727F', '#A890CE', '#FFFFFF', '#E0A96D', '#FFD166'];
-                confetti({ particleCount: 6, angle: 60, spread: 65, origin: { x: 0, y: 0.8 }, colors: macaronColors, zIndex: 100 });
-                confetti({ particleCount: 6, angle: 120, spread: 65, origin: { x: 1, y: 0.8 }, colors: macaronColors, zIndex: 100 });
-                if (Date.now() < end) { requestAnimationFrame(frame); }
-            }());
-        }
-
-        // --- 1. 时钟 ---
-        function updateTimeWidget() {
-            const now = new Date();
-            document.getElementById('hour').innerText = String(now.getHours()).padStart(2, '0');
-            document.getElementById('minute').innerText = String(now.getMinutes()).padStart(2, '0');
-        }
-        setInterval(updateTimeWidget, 1000); updateTimeWidget();
-
-        // --- 2. 3D 引擎与核心群组 ---
-        const container = document.getElementById('webgl-container');
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0xFFF5F5, 0.0012);
-
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-        camera.position.z = 600;
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        container.appendChild(renderer.domElement);
-
+        const mainCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+        mainCamera.position.z = 600;
         const galleryGroup = new THREE.Group();
-        scene.add(galleryGroup);
+        mainScene.add(galleryGroup);
 
-        // --- 3D 星尘 ---
-        const starGeometry = new THREE.BufferGeometry();
-        const starCount = 800;
-        const posArray = new Float32Array(starCount * 3);
-        for(let i=0; i<starCount*3; i++) {
-            posArray[i] = (Math.random() - 0.5) * 2500;
-        }
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        const starMaterial = new THREE.PointsMaterial({
-            size: 3.5,
-            color: 0xD9727F,
-            transparent: true,
-            opacity: 0.7,
-            sizeAttenuation: true
-        });
-        const starParticles = new THREE.Points(starGeometry, starMaterial);
-        scene.add(starParticles);
+        const starGeometryMain = new THREE.BufferGeometry();
+        const posArrayMain = new Float32Array(800 * 3);
+        for(let i=0; i<2400; i++) posArrayMain[i] = (Math.random() - 0.5) * 2500;
+        starGeometryMain.setAttribute('position', new THREE.BufferAttribute(posArrayMain, 3));
+        const starMaterialMain = new THREE.PointsMaterial({ size: 3.5, color: 0xD9727F, transparent: true, opacity: 0.7, sizeAttenuation: true });
+        mainScene.add(new THREE.Points(starGeometryMain, starMaterialMain));
 
-        // --- 照片矩阵 ---
         const photos = [];
         const numPhotos = window.innerWidth < 600 ? 25 : 40;
-        const closedPositions = [];
-        const carouselPositions = [];
-        const geometry = new THREE.PlaneGeometry(1, 1);
+        const closedPositions = []; const carouselPositions = [];
+        const plateGeo = new THREE.PlaneGeometry(1, 1);
         const carouselRadius = Math.max(350, numPhotos * 15);
 
         for (let i = 0; i < numPhotos; i++) {
             const pastelHues = [0.95, 0.05, 0.7, 0.12];
             const randomHue = pastelHues[Math.floor(Math.random() * pastelHues.length)];
-            const material = new THREE.MeshBasicMaterial({
-                color: new THREE.Color().setHSL(randomHue, 0.6, 0.8),
-                side: THREE.DoubleSide, transparent: true, opacity: 0.65
-            });
-            const mesh = new THREE.Mesh(geometry, material);
+            const pMat = new THREE.MeshBasicMaterial({ color: new THREE.Color().setHSL(randomHue, 0.6, 0.8), side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
+            const mesh = new THREE.Mesh(plateGeo, pMat);
             mesh.scale.set(60, 60, 1);
-            galleryGroup.add(mesh);
-            photos.push(mesh);
+            galleryGroup.add(mesh); photos.push(mesh);
 
             const phi = Math.acos(-1 + (2 * i) / numPhotos);
             const theta = Math.sqrt(numPhotos * Math.PI) * phi;
             const r = window.innerWidth < 600 ? 200 : 300;
-            closedPositions.push({
-                x: r * Math.cos(theta) * Math.sin(phi),
-                y: r * Math.sin(theta) * Math.sin(phi),
-                z: r * Math.cos(phi) - 150,
-                rx: Math.random() * Math.PI, ry: Math.random() * Math.PI, rz: Math.random() * Math.PI
-            });
+            closedPositions.push({ x: r * Math.cos(theta) * Math.sin(phi), y: r * Math.sin(theta) * Math.sin(phi), z: r * Math.cos(phi) - 150, rx: Math.random() * Math.PI, ry: Math.random() * Math.PI, rz: Math.random() * Math.PI });
 
             const angle = (i / numPhotos) * Math.PI * 2;
-            const ringOffset = (i % 2 === 0) ? 60 : -60;
-            carouselPositions.push({
-                x: Math.cos(angle) * carouselRadius, y: ringOffset + Math.sin(angle * 4) * 30, z: Math.sin(angle) * carouselRadius,
-                rx: 0, ry: -angle + Math.PI / 2, rz: 0
+            carouselPositions.push({ x: Math.cos(angle) * carouselRadius, y: (i % 2 === 0 ? 60 : -60) + Math.sin(angle * 4) * 30, z: Math.sin(angle) * carouselRadius, rx: 0, ry: -angle + Math.PI / 2, rz: 0 });
+        }
+
+        // =======================================================
+        // 主页交互与动画逻辑
+        // =======================================================
+        let mainState = 'CLOSED'; let activePhoto = null; let originalLocalPos = null; let originalLocalRot = null;
+
+        document.getElementById('backBtn').addEventListener('click', (e) => { e.stopPropagation(); transitionToClosed(); });
+        document.getElementById('scatterBtn').addEventListener('click', () => { transitionToCarousel(); });
+
+        function transitionToClosed() {
+            mainState = 'CLOSED'; document.getElementById('cardWrapper').classList.remove('hidden-wrapper'); document.getElementById('swipeHint').classList.remove('show-hint'); document.getElementById('backBtn').classList.remove('show');
+            photos.forEach((mesh, i) => {
+                new TWEEN.Tween(mesh.position).to({ x: closedPositions[i].x, y: closedPositions[i].y, z: closedPositions[i].z }, 1800).easing(TWEEN.Easing.Exponential.Out).start();
+                new TWEEN.Tween(mesh.rotation).to({ x: closedPositions[i].rx, y: closedPositions[i].ry, z: closedPositions[i].rz }, 1800).easing(TWEEN.Easing.Exponential.Out).start();
+            });
+        }
+        function transitionToCarousel() {
+            mainState = 'CAROUSEL'; document.getElementById('cardWrapper').classList.add('hidden-wrapper'); document.getElementById('swipeHint').classList.add('show-hint'); document.getElementById('backBtn').classList.add('show');
+            photos.forEach((mesh, i) => {
+                new TWEEN.Tween(mesh.position).to({ x: carouselPositions[i].x, y: carouselPositions[i].y, z: carouselPositions[i].z }, 2500).easing(TWEEN.Easing.Cubic.Out).start();
+                new TWEEN.Tween(mesh.rotation).to({ x: carouselPositions[i].rx, y: carouselPositions[i].ry, z: carouselPositions[i].rz }, 2500).easing(TWEEN.Easing.Cubic.Out).start();
             });
         }
 
-        // --- 洗印逻辑 ---
-        const uploadInput = document.getElementById('uploadInput');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const textureLoader = new THREE.TextureLoader();
-        let currentPhotoIndex = 0; let totalUploadedCount = 0;
+        const raycasterMain = new THREE.Raycaster(); const pointerMain = new THREE.Vector2();
+        let isDragging = false; let hasDragged = false; let previousMouseX = 0; let pointerDownPos = { x: 0, y: 0 }; let targetGalleryRotation = 0;
 
+        renderer.domElement.addEventListener('pointerdown', (e) => {
+            if(appState !== 'MAIN') return;
+            isDragging = true; hasDragged = false; previousMouseX = e.clientX; pointerDownPos.x = e.clientX; pointerDownPos.y = e.clientY;
+        });
+        renderer.domElement.addEventListener('pointermove', (e) => {
+            if(appState !== 'MAIN' || !isDragging) return;
+            if (Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) > 15) { hasDragged = true; }
+            if (mainState === 'CAROUSEL') { targetGalleryRotation += (e.clientX - previousMouseX) * 0.004; previousMouseX = e.clientX; }
+        });
+        renderer.domElement.addEventListener('pointerup', (e) => {
+            if(appState !== 'MAIN') return;
+            isDragging = false; if (hasDragged) return;
+
+            if (mainState === 'CLOSED') return;
+            if (mainState === 'ZOOMED') {
+                if (activePhoto) {
+                    mainState = 'CAROUSEL'; document.getElementById('swipeHint').classList.add('show-hint'); document.getElementById('backBtn').classList.add('show');
+                    galleryGroup.attach(activePhoto);
+                    new TWEEN.Tween(activePhoto.position).to({ x: originalLocalPos.x, y: originalLocalPos.y, z: originalLocalPos.z }, 1200).easing(TWEEN.Easing.Cubic.InOut).start();
+                    new TWEEN.Tween(activePhoto.rotation).to({ x: originalLocalRot.x, y: originalLocalRot.y, z: originalLocalRot.z }, 1200).easing(TWEEN.Easing.Cubic.InOut).start();
+                } return;
+            }
+            pointerMain.x = ((e.clientX - renderer.domElement.getBoundingClientRect().left) / window.innerWidth) * 2 - 1;
+            pointerMain.y = -((e.clientY - renderer.domElement.getBoundingClientRect().top) / window.innerHeight) * 2 + 1;
+            raycasterMain.setFromCamera(pointerMain, mainCamera);
+            const intersects = raycasterMain.intersectObjects(photos);
+
+            if (intersects.length > 0) {
+                activePhoto = intersects[0].object; originalLocalPos = activePhoto.position.clone(); originalLocalRot = activePhoto.rotation.clone();
+                mainScene.attach(activePhoto); mainState = 'ZOOMED'; document.getElementById('swipeHint').classList.remove('show-hint'); document.getElementById('backBtn').classList.remove('show');
+                new TWEEN.Tween(activePhoto.position).to({ x: 0, y: 0, z: mainCamera.position.z - (window.innerWidth < 600 ? 100 : 60) }, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+                new TWEEN.Tween(activePhoto.rotation).to({ x: 0, y: 0, z: 0 }, 1200).easing(TWEEN.Easing.Cubic.Out).start();
+            }
+        });
+
+        document.getElementById('cat-trigger').addEventListener('click', () => { document.getElementById('secret-letter-overlay').classList.add('show'); });
+        document.getElementById('close-letter').addEventListener('click', () => { document.getElementById('secret-letter-overlay').classList.remove('show'); });
+
+        const decos = [ { selector: '.deco-plane', animClass: 'anim-plane' }, { selector: '.deco-envelope', animClass: 'anim-envelope', hasConfetti: true }, { selector: '.deco-star', animClass: 'anim-star' }, { selector: '.deco-moon', animClass: 'anim-moon' } ];
+        decos.forEach(item => {
+            const el = document.querySelector(item.selector);
+            if (!el) return;
+            el.addEventListener('click', () => {
+                if (el.classList.contains(item.animClass)) return;
+                el.classList.add(item.animClass);
+                if (item.hasConfetti) confetti({ particleCount: 20, spread: 50, origin: { x: (el.getBoundingClientRect().left + 22) / window.innerWidth, y: (el.getBoundingClientRect().top + 22) / window.innerHeight }, colors: ['#E0A96D', '#D9727F', '#A890CE'], zIndex: 100 });
+                el.addEventListener('animationend', () => { el.classList.remove(item.animClass); }, { once: true });
+            });
+        });
+
+        const uploadBtn = document.getElementById('uploadBtn'); const uploadInput = document.getElementById('uploadInput'); const texLoader = new THREE.TextureLoader(); let pIdx = 0; let pTotal = 0;
         uploadBtn.addEventListener('click', () => { uploadInput.click(); });
-        uploadInput.addEventListener('change', (event) => {
-            const files = event.target.files;
-            if (files.length === 0) return;
+        uploadInput.addEventListener('change', (e) => {
+            const files = e.target.files; if (!files.length) return;
             let loadedCount = 0; uploadBtn.innerText = "✨ 正在冲洗...";
             for (let i = 0; i < files.length; i++) {
-                const fileURL = URL.createObjectURL(files[i]);
-                textureLoader.load(fileURL, (texture) => {
-                    texture.generateMipmaps = true; texture.minFilter = THREE.LinearMipmapLinearFilter; texture.magFilter = THREE.LinearFilter;
-                    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                    applyTextureToMesh(photos[currentPhotoIndex % numPhotos], texture);
-                    currentPhotoIndex++; loadedCount++;
-                    if (loadedCount === files.length) {
-                        totalUploadedCount += files.length;
-                        uploadBtn.innerText = `📸 继续放入 (${totalUploadedCount})`;
-                        URL.revokeObjectURL(fileURL);
-                    }
+                const url = URL.createObjectURL(files[i]);
+                texLoader.load(url, (tex) => {
+                    tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                    const m = photos[pIdx % numPhotos]; const ar = tex.image.width / tex.image.height;
+                    m.scale.set(100, 100 / ar, 1); m.material.map = tex; m.material.color.setHex(0xffffff); m.material.transparent = false; m.material.opacity = 1.0; m.material.needsUpdate = true;
+                    pIdx++; loadedCount++;
+                    if (loadedCount === files.length) { pTotal += files.length; uploadBtn.innerText = `📸 继续放入 (${pTotal})`; URL.revokeObjectURL(url); }
                 });
             }
         });
 
-        function applyTextureToMesh(mesh, texture) {
-            const baseWidth = 100; const img = texture.image;
-            if (img) {
-                const aspectRatio = img.width / img.height; let newHeight = baseWidth / aspectRatio;
-                mesh.scale.set(baseWidth, newHeight, 1);
-                mesh.material.map = texture; mesh.material.color.setHex(0xffffff);
-                mesh.material.transparent = false; mesh.material.opacity = 1.0; mesh.material.needsUpdate = true;
-            }
+        function fireMainConfetti() {
+            const isMobile = window.innerWidth < 600;
+            const count = isMobile ? 6 : 12;
+            const duration = 8000;
+            const end = Date.now() + duration;
+            (function frame() {
+                const colors = ['#D9727F', '#A890CE', '#FFFFFF', '#E0A96D', '#FFD166'];
+                confetti({ particleCount: count, angle: 60, spread: 80, origin: { x: 0, y: 0.8 }, colors: colors, zIndex: 100 });
+                confetti({ particleCount: count, angle: 120, spread: 80, origin: { x: 1, y: 0.8 }, colors: colors, zIndex: 100 });
+                if (Math.random() > 0.5) confetti({ particleCount: count/2, angle: 270, spread: 100, origin: { x: 0.5, y: -0.1 }, colors: colors, zIndex: 100, gravity: 0.8, startVelocity: 15 });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
         }
 
-        // --- 状态机与运镜 ---
-        let currentState = 'CLOSED'; let activePhoto = null; let originalLocalPos = null; let originalLocalRot = null;
-        const cardWrapper = document.getElementById('cardWrapper');
-        const scatterBtn = document.getElementById('scatterBtn');
-        const swipeHint = document.getElementById('swipeHint');
-        const backBtn = document.getElementById('backBtn'); // 专属返回主页按钮
+        // =======================================================
+        // 【终极彩蛋：程序员的浪漫终端 (打字速度优化版)】
+        // =======================================================
+        let clickCount = 0;
+        let clickTimer;
+        let keyBuffer = '';
+        let isTyping = false;
+        let typeTimeout;
 
-        // 修复：画廊界面专属返回按钮逻辑
-        backBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            transitionToClosed();
-        });
+        const terminalLines = [
+            "Risu,",
+            "这是给你的生日蛋糕，",
+            "当然是吃不了的",
+            "不过希望你开心",
+            "蛋糕加载中......",
+            "加载中......",
+            "......",
+            "骗你的其实不需要加载",
+            "",
+            "       ,,,,,       ",
+            "      _|||||_      ",
+            "     {~*~*~*~}     ",
+            "   __{*~*~*~*}__   ",
+            "  `-------------`  ",
+            "",
+            "> Happy Birthday, Risu. Love, sw."
+        ];
 
-        function transitionToClosed() {
-            currentState = 'CLOSED';
-            cardWrapper.classList.remove('hidden-wrapper');
-            swipeHint.classList.remove('show-hint');
-            backBtn.classList.remove('show'); // 隐藏返回按钮
-
-            photos.forEach((mesh, i) => {
-                const target = closedPositions[i];
-                new TWEEN.Tween(mesh.position).to({ x: target.x, y: target.y, z: target.z }, 1800).easing(TWEEN.Easing.Exponential.Out).start();
-                new TWEEN.Tween(mesh.rotation).to({ x: target.rx, y: target.ry, z: target.rz }, 1800).easing(TWEEN.Easing.Exponential.Out).start();
-            });
-        }
-
-        function transitionToCarousel() {
-            currentState = 'CAROUSEL';
-            cardWrapper.classList.add('hidden-wrapper');
-            swipeHint.classList.add('show-hint');
-            backBtn.classList.add('show'); // 展开画廊时，显示专属返回按钮
-
-            photos.forEach((mesh, i) => {
-                const target = carouselPositions[i];
-                new TWEEN.Tween(mesh.position).to({ x: target.x, y: target.y, z: target.z }, 2500).easing(TWEEN.Easing.Cubic.Out).start();
-                new TWEEN.Tween(mesh.rotation).to({ x: target.rx, y: target.ry, z: target.rz }, 2500).easing(TWEEN.Easing.Cubic.Out).start();
-            });
-        }
-        scatterBtn.addEventListener('click', () => { transitionToCarousel(); });
-
-        // --- 核心修复：防误触与分离引擎 ---
-        const raycaster = new THREE.Raycaster(); const pointer = new THREE.Vector2();
-        let isDragging = false; let hasDragged = false; let previousMouseX = 0; let pointerDownPos = { x: 0, y: 0 }; let targetGalleryRotation = 0;
-
-        renderer.domElement.addEventListener('pointerdown', (e) => {
-            isDragging = true; hasDragged = false; previousMouseX = e.clientX; pointerDownPos.x = e.clientX; pointerDownPos.y = e.clientY;
-        });
-
-        renderer.domElement.addEventListener('pointermove', (e) => {
-            if (!isDragging) return;
-            // 修复：大幅提高滑动判定阈值(15px)，防止手机端点按图片被错误判定为滑动！
-            if (Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) > 15) { hasDragged = true; }
-            if (currentState === 'CAROUSEL') {
-                const deltaX = e.clientX - previousMouseX; targetGalleryRotation += deltaX * 0.004; previousMouseX = e.clientX;
-            }
-        });
-
-        renderer.domElement.addEventListener('pointerup', (e) => {
-            isDragging = false; if (hasDragged) return; handleInteraction(e.clientX, e.clientY);
-        });
-
-        function handleInteraction(clientX, clientY) {
-            if (currentState === 'CLOSED') return;
-            if (currentState === 'ZOOMED') {
-                // 在图片放大状态下，点击任意区域都能退回画廊环绕模式
-                if (activePhoto) {
-                    currentState = 'CAROUSEL'; swipeHint.classList.add('show-hint'); backBtn.classList.add('show');
-                    galleryGroup.attach(activePhoto);
-                    new TWEEN.Tween(activePhoto.position).to({ x: originalLocalPos.x, y: originalLocalPos.y, z: originalLocalPos.z }, 1200).easing(TWEEN.Easing.Cubic.InOut).start();
-                    new TWEEN.Tween(activePhoto.rotation).to({ x: originalLocalRot.x, y: originalLocalRot.y, z: originalLocalRot.z }, 1200).easing(TWEEN.Easing.Cubic.InOut).start();
-                }
+        // 触发机制 1：键盘输入 R I S U
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideTerminal();
                 return;
             }
-
-            // 当前为 CAROUSEL 画廊模式，检测是否点击了某张图片
-            const rect = renderer.domElement.getBoundingClientRect();
-            pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1; pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-            raycaster.setFromCamera(pointer, camera);
-            const intersects = raycaster.intersectObjects(photos);
-
-            if (intersects.length > 0) {
-                // 点击命中图片，放大展示
-                activePhoto = intersects[0].object; originalLocalPos = activePhoto.position.clone(); originalLocalRot = activePhoto.rotation.clone();
-                scene.attach(activePhoto); currentState = 'ZOOMED'; swipeHint.classList.remove('show-hint'); backBtn.classList.remove('show');
-                const zoomDistanceToCamera = window.innerWidth < 600 ? 100 : 60;
-                new TWEEN.Tween(activePhoto.position).to({ x: 0, y: 0, z: camera.position.z - zoomDistanceToCamera }, 1200).easing(TWEEN.Easing.Cubic.Out).start();
-                new TWEEN.Tween(activePhoto.rotation).to({ x: 0, y: 0, z: 0 }, 1200).easing(TWEEN.Easing.Cubic.Out).start();
-            }
-            // 修复：彻底移除了之前这里“如果没点中图片就退回首页”的荒唐判定！现在点空隙只会安安静静地什么都不做。
-        }
-
-        // --- 渲染循环 ---
-        function animate() {
-            requestAnimationFrame(animate); TWEEN.update();
-
-            starParticles.rotation.y -= 0.0003;
-            starParticles.rotation.x += 0.0001;
-
-            if (currentState === 'CLOSED') {
-                galleryGroup.rotation.y += 0.002; galleryGroup.rotation.x = 0.1; targetGalleryRotation = galleryGroup.rotation.y;
-            } else if (currentState === 'CAROUSEL' || currentState === 'ZOOMED') {
-                if (!isDragging) { targetGalleryRotation -= 0.001; }
-                galleryGroup.rotation.x = 0; galleryGroup.rotation.y += (targetGalleryRotation - galleryGroup.rotation.y) * 0.1;
-                if (currentState === 'CAROUSEL') {
-                    photos.forEach((mesh, i) => { mesh.position.y += Math.sin(Date.now() * 0.001 + i) * 0.05; });
+            if (e.key.length === 1) {
+                keyBuffer += e.key.toLowerCase();
+                if (keyBuffer.length > 10) keyBuffer = keyBuffer.slice(-10);
+                if (keyBuffer.endsWith('risu')) {
+                    showTerminal();
+                    keyBuffer = '';
                 }
             }
-            renderer.render(scene, camera);
+        });
+
+        // 触发机制 2：连续点击 16 次
+        window.addEventListener('click', (e) => {
+            if (document.getElementById('terminal-overlay').classList.contains('show')) return;
+
+            clickCount++;
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => { clickCount = 0; }, 1000);
+
+            if (clickCount >= 16) {
+                showTerminal();
+                clickCount = 0;
+            }
+        });
+
+        // 手机端双击退出终端
+        let termClickTimer = 0;
+        document.getElementById('terminal-overlay').addEventListener('click', () => {
+            const now = new Date().getTime();
+            if (now - termClickTimer < 400) { hideTerminal(); }
+            termClickTimer = now;
+        });
+
+        function showTerminal() {
+            const overlay = document.getElementById('terminal-overlay');
+            if (overlay.classList.contains('show')) return;
+            overlay.classList.add('show');
+            document.getElementById('terminal-content').innerHTML = '';
+            isTyping = true;
+            typeLines(0, 0); // 从第0行，第0个字符开始打字
         }
 
-        transitionToClosed(); animate();
+        function hideTerminal() {
+            const overlay = document.getElementById('terminal-overlay');
+            overlay.classList.remove('show');
+            isTyping = false;
+            clearTimeout(typeTimeout);
+        }
+
+        // 核心时间控制引擎：模拟真人缓慢打字
+        function typeLines(lineIdx, charIdx) {
+            if (!isTyping) return;
+            const contentDiv = document.getElementById('terminal-content');
+
+            if (lineIdx < terminalLines.length) {
+                if (charIdx === 0) {
+                    const newLine = document.createElement('span');
+                    newLine.className = 'term-line';
+
+                    const oldCursor = document.querySelector('.term-cursor');
+                    if (oldCursor) oldCursor.remove();
+
+                    contentDiv.appendChild(newLine);
+                    contentDiv.innerHTML += '<span class="term-cursor">█</span>';
+
+                    contentDiv.scrollTop = contentDiv.scrollHeight;
+                }
+
+                const lines = contentDiv.getElementsByClassName('term-line');
+                const currentLine = lines[lines.length - 1];
+
+                if (charIdx < terminalLines[lineIdx].length) {
+                    const char = terminalLines[lineIdx].charAt(charIdx);
+                    currentLine.innerHTML += char;
+
+                    // --- 速度控制核心逻辑 ---
+                    let baseDelay = 40;  // 默认极快速度（适用于系统提示音）
+                    let randomFactor = 30;
+
+                    if (lineIdx >= 0 && lineIdx <= 7) {
+                        // 悄悄话部分，打字速度放得很慢，模拟人在思考和敲击
+                        baseDelay = 180;
+                        randomFactor = 150;
+
+                        // 遇到标点符号（逗号、句号、省略号），额外大幅停顿
+                        if (char === '，' || char === ',' || char === '.' || char === '。') {
+                            baseDelay += 300;
+                        }
+                    } else if (lineIdx >= 9 && lineIdx <= 13) {
+                        // ASCII 蛋糕部分，瞬间刷拉拉打印出来
+                        baseDelay = 10;
+                        randomFactor = 10;
+                    } else if (lineIdx === 15) {
+                        // 最后的署名，庄重一点，中等偏慢
+                        baseDelay = 120;
+                        randomFactor = 80;
+                    }
+
+                    const delay = Math.random() * randomFactor + baseDelay;
+                    typeTimeout = setTimeout(() => typeLines(lineIdx, charIdx + 1), delay);
+                } else {
+                    currentLine.innerHTML += '<br>';
+
+                    // 换行时的停顿时间控制
+                    let lineBreakDelay = 300;
+                    if (lineIdx >= 0 && lineIdx <= 7) {
+                        // 说心里话时，换行多停顿一会儿 (1秒左右)
+                        lineBreakDelay = 1000;
+                    } else if (lineIdx >= 9 && lineIdx <= 13) {
+                        // 蛋糕行与行之间几乎不停顿
+                        lineBreakDelay = 50;
+                    }
+
+                    typeTimeout = setTimeout(() => typeLines(lineIdx + 1, 0), lineBreakDelay);
+                }
+            } else {
+                isTyping = false;
+            }
+        }
+
+        // =======================================================
+        // 核心渲染大循环 (Render Loop)
+        // =======================================================
+        transitionToClosed();
+
+        function animate() {
+            requestAnimationFrame(animate); TWEEN.update();
+            const time = Date.now() * 0.001;
+
+            if (appState === 'INTRO') {
+                introControls.update();
+
+                const pulseScale = 1 + Math.sin(time * 2) * 0.15;
+                textParticles.material.size = (window.innerWidth < 600 ? 1.5 : 1.8) * pulseScale;
+
+                raycasterIntro.setFromCamera(mouseIntro, introCamera);
+                raycasterIntro.ray.intersectPlane(planeZ0, pointOfIntersection);
+
+                const positions = textParticles.geometry.attributes.position.array;
+                const origins = textParticles.geometry.attributes.originalPosition.array;
+                const vels = textParticles.geometry.attributes.velocity.array;
+
+                for (let i = 0; i < positions.length; i += 3) {
+                    let px = positions[i], py = positions[i+1], pz = positions[i+2];
+                    let ox = origins[i], oy = origins[i+1], oz = origins[i+2];
+                    let vx = vels[i], vy = vels[i+1], vz = vels[i+2];
+
+                    if (isAssembling) {
+                        let dx = px - pointOfIntersection.x;
+                        let dy = py - pointOfIntersection.y;
+                        let distSq = dx*dx + dy*dy;
+                        if (distSq < 1500) {
+                            let force = (1500 - distSq) * 0.0001;
+                            vx += dx * force; vy += dy * force;
+                        }
+
+                        vx += (ox - px) * 0.004;
+                        vy += (oy - py) * 0.004;
+                        vz += (oz - pz) * 0.004;
+                    } else {
+                        vx += (Math.random() - 0.5) * 0.1;
+                        vy += (Math.random() - 0.5) * 0.1;
+                        vz += (Math.random() - 0.5) * 0.1;
+                    }
+
+                    vx *= 0.90; vy *= 0.90; vz *= 0.90;
+
+                    positions[i] += vx; positions[i+1] += vy; positions[i+2] += vz;
+                    vels[i] = vx; vels[i+1] = vy; vels[i+2] = vz;
+                }
+                textParticles.geometry.attributes.position.needsUpdate = true;
+                renderer.render(introScene, introCamera);
+
+            } else if (appState === 'MAIN') {
+                if (mainState === 'CLOSED') {
+                    galleryGroup.rotation.y += 0.002; galleryGroup.rotation.x = 0.1; targetGalleryRotation = galleryGroup.rotation.y;
+                } else if (mainState === 'CAROUSEL' || mainState === 'ZOOMED') {
+                    if (!isDragging) targetGalleryRotation -= 0.001;
+                    galleryGroup.rotation.x = 0; galleryGroup.rotation.y += (targetGalleryRotation - galleryGroup.rotation.y) * 0.1;
+                    if (mainState === 'CAROUSEL') photos.forEach((mesh, i) => { mesh.position.y += Math.sin(time + i) * 0.05; });
+                }
+                renderer.render(mainScene, mainCamera);
+            }
+        }
+
+        animate();
+
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);
+            introCamera.aspect = window.innerWidth / window.innerHeight; introCamera.updateProjectionMatrix();
+            mainCamera.aspect = window.innerWidth / window.innerHeight; mainCamera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>
