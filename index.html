@@ -27,21 +27,29 @@
         body {
             margin: 0; padding: 0; overflow: hidden;
             font-family: 'Playfair Display', 'Georgia', serif;
-            /* 绝对锁死的浅色奶油渐变背景 */
             background: linear-gradient(135deg, #FFFFFF 0%, #FFF5F5 100%);
             touch-action: none; position: relative;
             cursor: default; width: 100vw; height: 100vh;
         }
 
+        /* --- 音乐律动可视化画布 --- */
+        #audio-visualizer {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100vw; height: 30vh;
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+        #audio-visualizer.active { opacity: 1; }
+
         #webgl-container {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1;
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 6;
             cursor: grab; pointer-events: auto;
         }
         #webgl-container:active { cursor: grabbing; }
 
-        /* ==========================================
-           --- 极致优雅的奢华剧场帷幕 (纯白系) ---
-           ========================================== */
         .curtain {
             position: fixed; top: 0; width: 50vw; height: 100vh; z-index: 9998;
             background: repeating-linear-gradient(to right, transparent, rgba(92, 65, 93, 0.02) 4%, transparent 8%),
@@ -49,67 +57,48 @@
             transition: transform 2.8s cubic-bezier(0.65, 0, 0.15, 1);
             box-shadow: inset 0 0 30px rgba(217, 114, 127, 0.03);
         }
-        #curtain-left {
-            left: 0; transform-origin: left;
-            border-right: 4px solid #E0A96D;
-            box-shadow: inset -15px 0 25px rgba(0,0,0,0.03);
-        }
-        #curtain-right {
-            right: 0; transform-origin: right;
-            border-left: 4px solid #E0A96D;
-            box-shadow: inset 15px 0 25px rgba(0,0,0,0.03);
-        }
+        #curtain-left { left: 0; transform-origin: left; border-right: 4px solid #E0A96D; box-shadow: inset -15px 0 25px rgba(0,0,0,0.03); }
+        #curtain-right { right: 0; transform-origin: right; border-left: 4px solid #E0A96D; box-shadow: inset 15px 0 25px rgba(0,0,0,0.03); }
         #curtain-left.open { transform: translateX(-100%); }
         #curtain-right.open { transform: translateX(100%); }
 
-        /* --- 电影级加载层 --- */
         #loading-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: transparent; z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 1.5s ease-in-out;
         }
-        .loading-icon {
-            width: 45px; height: 45px; fill: #D9727F; animation: pulse 1.5s infinite ease-in-out; margin-bottom: 25px;
-            filter: drop-shadow(0 4px 10px rgba(217, 114, 127, 0.2));
-        }
+        .loading-icon { width: 45px; height: 45px; fill: #D9727F; animation: pulse 1.5s infinite ease-in-out; margin-bottom: 25px; filter: drop-shadow(0 4px 10px rgba(217, 114, 127, 0.2)); }
         .loading-text { font-family: 'Jost', sans-serif; font-size: 14px; letter-spacing: 6px; color: #5C415D; text-transform: uppercase; }
         @keyframes pulse { 0%, 100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.05) translateY(-5px); } }
 
-        /* 浅色噪点滤镜，保持透亮 */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAAAAABhw8h/AAAAAXRSTlMAQObVGgAAAHJJREFUOI2t08ENwCAMQ9E0yv6LxhBQRJ2g+r/E0n/Y42g1Z5zP+r1W18zM0r1Xv4HMWvWczVn11D0yZzVn1VOvH0hmreauejrmnNVZ9dTvXzJndVY9dXvOrOaseur2nFnNWfXU/wEyZ9VTv3vKnNWcVU+9fqB/9Q2f8g84g1tW1AAAAABJRU5ErkJggg==');
             opacity: 0.02; pointer-events: none; z-index: 2;
         }
 
-        /* ==========================================
-           --- 粒子魔法前场 UI ---
-           ========================================== */
         #intro-ui {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             pointer-events: none; transition: opacity 1.5s ease;
         }
-        .intro-hint {
-            position: absolute; top: 15%; color: rgba(92, 65, 93, 0.7); font-family: 'Jost', sans-serif;
-            letter-spacing: 4px; font-size: 14px; text-transform: uppercase; animation: pulseHint 2.5s infinite;
-        }
-        #enter-btn {
-            position: absolute; bottom: 15%; padding: 14px 38px; border-radius: 50px;
-            background: rgba(255, 255, 255, 0.8); border: 1.5px solid #5C415D; color: #5C415D;
-            font-family: 'Jost', sans-serif; font-weight: bold; letter-spacing: 3px; font-size: 14px;
-            cursor: pointer; pointer-events: auto; transition: all 0.4s ease; backdrop-filter: blur(8px);
-            opacity: 0; visibility: hidden; transform: translateY(20px);
-        }
+        .intro-hint { position: absolute; top: 15%; color: rgba(92, 65, 93, 0.7); font-family: 'Jost', sans-serif; letter-spacing: 4px; font-size: 14px; text-transform: uppercase; animation: pulseHint 2.5s infinite; }
+        #enter-btn { position: absolute; bottom: 15%; padding: 14px 38px; border-radius: 50px; background: rgba(255, 255, 255, 0.8); border: 1.5px solid #5C415D; color: #5C415D; font-family: 'Jost', sans-serif; font-weight: bold; letter-spacing: 3px; font-size: 14px; cursor: pointer; pointer-events: auto; transition: all 0.4s ease; backdrop-filter: blur(8px); opacity: 0; visibility: hidden; transform: translateY(20px); }
         #enter-btn.show { opacity: 1; visibility: visible; transform: translateY(0); }
         #enter-btn:hover { background: #5C415D; color: #FFF; box-shadow: 0 8px 20px rgba(92,65,93,0.3); transform: translateY(-3px); }
 
-        /* ==========================================
-           --- 画廊主场 UI ---
-           ========================================== */
         #main-gallery-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 10; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 1.5s ease; }
         #main-gallery-ui.show { opacity: 1; visibility: visible; }
+
+        /* --- 独立音乐控制按钮 --- */
+        #music-toggle-btn { position: fixed; bottom: 40px; right: 40px; z-index: 150; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1.5px solid #D9727F; border-radius: 50px; padding: 12px 24px; color: #D9727F; font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; pointer-events: auto; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 25px rgba(217, 114, 127, 0.15); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(20px); }
+        #main-gallery-ui.show #music-toggle-btn { opacity: 1; transform: translateY(0); }
+        #music-toggle-btn:hover { background: #FFF5F5; transform: translateY(-3px); box-shadow: 0 12px 30px rgba(217, 114, 127, 0.25); }
+        #music-toggle-btn.playing { background: #D9727F; color: #FFFFFF; border-color: #D9727F; }
+        .music-icon { font-size: 16px; display: inline-block; transition: transform 0.3s ease; }
+        #music-toggle-btn.playing .music-icon { animation: musicSpin 3s linear infinite; }
+        @keyframes musicSpin { 100% { transform: rotate(360deg); } }
 
         .transition-wrapper { position: absolute; width: 100%; height: 100%; pointer-events: none; transition: opacity 0.8s ease, transform 0.8s ease; }
         .hidden-wrapper { opacity: 0 !important; transform: scale(0.95); visibility: hidden !important; pointer-events: none !important; filter: blur(5px); }
@@ -131,12 +120,57 @@
         .action-btn { background: rgba(255, 255, 255, 0.8); border: 1.5px solid #5C415D; padding: 12px 28px; border-radius: 50px; color: #5C415D; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.4s ease; letter-spacing: 2px; backdrop-filter: blur(5px); font-family: 'Playfair Display', serif; }
         .action-btn:hover { background: #5C415D; color: #FFFFFF; transform: translateY(-3px); }
 
+        /* ==========================================
+           --- 小猫与换装：修复版 ---
+           ========================================== */
         .cute-cat { position: absolute; left: 50%; bottom: -15px; transform: translateX(-50%); width: 85px; height: 85px; z-index: 20; filter: drop-shadow(0px -4px 8px rgba(92, 65, 93, 0.25)); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: auto; cursor: pointer; }
         .cute-cat:hover { transform: translate(-50%, -25px) rotate(3deg); }
         .cat-body { fill: #2A212A; }
-        .cat-eye { position: absolute; top: 38px; left: 26px; width: 5px; height: 5px; background: #FFD166; border-radius: 50%; animation: wink 4s infinite; box-shadow: 0 0 6px #FFD166; }
+
+        /* 恢复小猫眨眼动画 */
+        .cat-eye {
+            position: absolute; top: 38px; left: 26px; width: 5px; height: 5px;
+            background: #FFD166; border-radius: 50%;
+            box-shadow: 0 0 6px #FFD166; z-index: 2;
+            transform-origin: center;
+            animation: wink 4s infinite; /* 眨眼动画绑定 */
+        }
         .cat-eye.right { left: auto; right: 26px; }
 
+        @keyframes wink {
+            0%, 96%, 100% { transform: scaleY(1); }
+            98% { transform: scaleY(0.1); }
+        }
+
+        /* 礼帽 (修复悬浮：调整 top 和 translateY 让其贴合头部凹陷) */
+        .cat-hat {
+            position: absolute;
+            top: -12px; /* 调整起始位置，抵消SVG内空白 */
+            left: 50%; width: 45px; height: 45px;
+            transform: translateX(-50%) translateY(-40px) scale(0) rotate(15deg);
+            opacity: 0; z-index: 3;
+            /* 使用柔和的弹性曲线 */
+            transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* 领结 */
+        .cat-bowtie {
+            position: absolute; top: 60px; left: 50%; width: 35px; height: 20px;
+            transform: translateX(-50%) scale(0);
+            opacity: 0; z-index: 3;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s; /* 延迟出现 */
+        }
+
+        /* 换装激活状态 */
+        .cute-cat.dress-code .cat-hat {
+            transform: translateX(-50%) translateY(0) scale(1) rotate(-5deg); /* 落到实处 */
+            opacity: 1;
+        }
+        .cute-cat.dress-code .cat-bowtie { transform: translateX(-50%) scale(1); opacity: 1; }
+
+        /* ==========================================
+           --- 装饰与点缀 ---
+           ========================================== */
         #secret-letter-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100; background: rgba(255, 245, 245, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }
         #secret-letter-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
         .letter-paper { background: rgba(255, 255, 255, 0.95); border: 1px solid #FFFFFF; border-radius: 20px; padding: 50px; width: 80vw; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(92, 65, 93, 0.15); position: relative; transform: translateY(50px) scale(0.9); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: auto; }
@@ -147,13 +181,7 @@
         .letter-content p { font-family: 'Georgia', serif; font-size: 16px; color: #5C415D; line-height: 1.8; letter-spacing: 1px; margin-bottom: 10px;}
         .letter-link { display: inline-block; margin: 10px 0; padding: 10px 24px; background: rgba(217, 114, 127, 0.1); color: #D9727F; cursor: pointer; text-decoration: none; border-radius: 12px; font-weight: bold; font-family: 'Jost', sans-serif; letter-spacing: 1px; border: 1px solid rgba(217, 114, 127, 0.3); transition: all 0.3s ease; }
         .letter-link:hover { background: #D9727F; color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 8px 15px rgba(217, 114, 127, 0.3); }
-        .letter-audio-wrapper { display: flex; flex-direction: column; gap: 15px; margin: 25px 0; }
-        .audio-item { background: rgba(217, 114, 127, 0.05); padding: 15px; border-radius: 12px; border: 1px dashed rgba(217, 114, 127, 0.4); pointer-events: auto; }
-        .audio-label { display: block; font-family: 'Jost', sans-serif; font-size: 13px; color: #D9727F; margin-bottom: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
-        .audio-item audio { width: 100%; height: 35px; outline: none; border-radius: 50px; filter: sepia(0.2) hue-rotate(-30deg) saturate(1.2) contrast(1.1) opacity(0.85); transition: opacity 0.3s; }
-        .audio-item audio:hover { opacity: 1; }
 
-        /* 四周点缀系统 */
         .cute-deco { position: absolute; z-index: 25; opacity: 0.8; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1)); pointer-events: auto; cursor: pointer; transition: filter 0.3s ease; }
         .cute-deco:hover { filter: drop-shadow(0 0 12px rgba(217, 114, 127, 0.7)) brightness(1.1); }
         .deco-envelope { top: 15%; right: 12%; width: 45px; fill: #E0A96D; }
@@ -180,53 +208,12 @@
         #swipeHint.show-hint { opacity: 0.8; visibility: visible; animation: pulseHint 2s infinite; }
         @keyframes pulseHint { 0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.5; } 50% { transform: translateX(-50%) scale(1.05); opacity: 0.9; } }
 
-        /* ==========================================
-           --- 极致浪漫：程序员式复古终端彩蛋 ---
-           ========================================== */
-        #terminal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(10, 10, 10, 0.96); backdrop-filter: blur(10px);
-            z-index: 100000; display: flex; justify-content: center; align-items: center;
-            opacity: 0; visibility: hidden; transition: opacity 0.4s ease;
-            pointer-events: none;
-        }
-        #terminal-overlay.show {
-            opacity: 1; visibility: visible; pointer-events: auto;
-        }
-        #terminal-content {
-            width: 90vw; max-width: 800px; height: 80vh; overflow-y: auto;
-            font-family: 'Courier New', Courier, monospace; color: #00FF41;
-            font-size: 15px; line-height: 1.8; text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
-            white-space: pre-wrap; padding: 20px; box-sizing: border-box;
-            border: 1px solid rgba(0, 255, 65, 0.3); border-radius: 8px;
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        /* --- 新增：定制终端幽灵绿滚动条 --- */
-        #terminal-content::-webkit-scrollbar {
-            width: 8px;
-        }
-        #terminal-content::-webkit-scrollbar-track {
-            background: rgba(0, 255, 65, 0.05);
-            border-radius: 4px;
-        }
-        #terminal-content::-webkit-scrollbar-thumb {
-            background: rgba(0, 255, 65, 0.3);
-            border-radius: 4px;
-        }
-        #terminal-content::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 255, 65, 0.6);
-        }
-
-        .term-cursor {
-            display: inline-block; width: 10px; height: 18px; background-color: #00FF41;
-            animation: blinkTerm 1s step-end infinite; vertical-align: bottom; margin-left: 2px;
-        }
-        .term-hint {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            color: rgba(0, 255, 65, 0.5); font-family: 'Courier New', Courier, monospace;
-            font-size: 12px; pointer-events: none; letter-spacing: 1px;
-        }
+        #terminal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.96); backdrop-filter: blur(10px); z-index: 100000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.4s ease; pointer-events: none; }
+        #terminal-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
+        #terminal-content { width: 90vw; max-width: 800px; height: 80vh; overflow-y: auto; font-family: 'Courier New', Courier, monospace; color: #00FF41; font-size: 15px; line-height: 1.8; text-shadow: 0 0 5px rgba(0, 255, 65, 0.5); white-space: pre-wrap; padding: 20px; box-sizing: border-box; border: 1px solid rgba(0, 255, 65, 0.3); border-radius: 8px; background: rgba(0, 0, 0, 0.5); }
+        #terminal-content::-webkit-scrollbar { width: 8px; } #terminal-content::-webkit-scrollbar-track { background: rgba(0, 255, 65, 0.05); border-radius: 4px; } #terminal-content::-webkit-scrollbar-thumb { background: rgba(0, 255, 65, 0.3); border-radius: 4px; } #terminal-content::-webkit-scrollbar-thumb:hover { background: rgba(0, 255, 65, 0.6); }
+        .term-cursor { display: inline-block; width: 10px; height: 18px; background-color: #00FF41; animation: blinkTerm 1s step-end infinite; vertical-align: bottom; margin-left: 2px; }
+        .term-hint { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(0, 255, 65, 0.5); font-family: 'Courier New', Courier, monospace; font-size: 12px; pointer-events: none; letter-spacing: 1px; }
         @keyframes blinkTerm { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
         @media (max-width: 600px) {
@@ -239,22 +226,25 @@
             .back-btn { top: 20px; left: 20px; padding: 8px 18px; font-size: 13px; }
             .intro-hint { top: 25%; font-size: 12px; }
             #terminal-content { font-size: 12px; }
+            #music-toggle-btn { bottom: 20px; right: 20px; padding: 10px 18px; font-size: 12px; }
         }
     </style>
 </head>
 <body>
 
     <div id="loading-screen">
-        <svg class="loading-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"/>
-        </svg>
+        <svg class="loading-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"/></svg>
         <div class="loading-text">Preparing Surprise For Risu...</div>
     </div>
 
     <div id="curtain-left" class="curtain"></div>
     <div id="curtain-right" class="curtain"></div>
 
+    <canvas id="audio-visualizer"></canvas>
+
     <div id="webgl-container"></div>
+
+    <audio id="main-bg-music" src="./static/緑黄色社会 - Party!!.mp3"></audio>
 
     <div id="intro-ui">
         <div class="intro-hint">可以鼠标拖拽旋转视角</div>
@@ -263,15 +253,20 @@
 
     <div id="main-gallery-ui" class="main-ui-layer">
 
+        <button id="music-toggle-btn">
+            <span class="music-icon">🎵</span>
+            <span class="music-text">Play Party!!</span>
+        </button>
+
         <div id="backBtn" class="back-btn">
             <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
             返回主页
         </div>
 
-        <div class="float-wrap"><svg class="cute-deco deco-envelope" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"/></svg></div>
-        <div class="float-wrap reverse"><svg class="cute-deco deco-plane" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z"/></svg></div>
-        <div class="float-wrap delay"><svg class="cute-deco deco-star" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z"/></svg></div>
-        <div class="float-wrap"><svg class="cute-deco deco-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a9.93 9.93 0 0 0-3.97.83 7.82 7.82 0 0 1 0 16.34A9.93 9.93 0 0 0 12 22a10 10 0 0 0 0-20z"/></svg></div>
+        <div class="float-wrap"><svg class="cute-deco deco-envelope" viewBox="0 0 24 24"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"/></svg></div>
+        <div class="float-wrap reverse"><svg class="cute-deco deco-plane" viewBox="0 0 24 24"><path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z"/></svg></div>
+        <div class="float-wrap delay"><svg class="cute-deco deco-star" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z"/></svg></div>
+        <div class="float-wrap"><svg class="cute-deco deco-moon" viewBox="0 0 24 24"><path d="M12 2a9.93 9.93 0 0 0-3.97.83 7.82 7.82 0 0 1 0 16.34A9.93 9.93 0 0 0 12 22a10 10 0 0 0 0-20z"/></svg></div>
 
         <div id="swipeHint"> 左右滑动 </div>
 
@@ -291,10 +286,17 @@
         </div>
 
         <div class="cute-cat" id="cat-trigger">
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 100 100" style="position:relative; z-index: 2;">
                 <path class="cat-body" d="M50,85 C20,85 10,65 10,45 C10,35 15,20 20,10 L35,28 C40,26 45,25 50,25 C55,25 60,26 65,28 L80,10 C85,20 90,35 90,45 C90,65 80,85 50,85 Z" />
             </svg>
             <div class="cat-eye"></div><div class="cat-eye right"></div>
+
+            <div class="cat-hat">
+                <svg viewBox="0 0 100 100"><path fill="#5C415D" d="M10,80 L90,80 L90,65 L75,65 L75,20 C75,15 70,10 65,10 L35,10 C30,10 25,15 25,20 L25,65 L10,65 Z"/><rect x="25" y="50" width="50" height="15" fill="#D9727F"/></svg>
+            </div>
+            <div class="cat-bowtie">
+                <svg viewBox="0 0 100 50"><path fill="#D9727F" d="M10,10 L45,25 L10,40 C5,35 5,15 10,10 Z M90,10 L55,25 L90,40 C95,35 95,15 90,10 Z"/><circle cx="50" cy="25" r="10" fill="#E0A96D"/></svg>
+            </div>
         </div>
 
         <div id="secret-letter-overlay">
@@ -302,17 +304,7 @@
                 <div class="close-letter-btn" id="close-letter">✖</div>
                 <div class="letter-content">
                     <h2>致 亲爱的 Risu,</h2>
-                    <p>生日快乐！<br><br>这是一个只属于你的生日网站<br><br>虽然只有一些展示的功能没什么用<br><br>上面你可以自己选择放一些图片进去展示<br><br>展示界面里边也可以点开看<br><br>这是我和月音给你的生日歌<br></p>
-                    <div class="letter-audio-wrapper">
-                        <div class="audio-item">
-                            <span class="audio-label">🎵 我给你的生日歌</span>
-                            <audio id="music1" controls><source src="/static/my_song.mp3" type="audio/mpeg"></audio>
-                        </div>
-                        <div class="audio-item">
-                            <span class="audio-label">🎶 月音给你的生日歌</span>
-                            <audio controls><source src="/static/friends_song.mp3" type="audio/mpeg"></audio>
-                        </div>
-                    </div>
+                    <p>生日快乐！<br><br>这是一个只属于你的生日网站<br><br>虽然只有一些展示的功能没什么用<br><br>上面你可以自己选择放一些图片进去展示<br><br>展示界面里边也可以点开看<br><br>（右下角的按钮可以播放送给你的歌哦~）<br></p>
                     <a href="https://www.bilibili.com/video/BV1pvu9zhE4Q/?share_source=copy_web&vd_source=9cd4c654d371bc176f64e778df719c7d" target="_blank" class="letter-link">✨ 点击这里跳转绝美手书 ✨</a>
                     <p><br>—— sw</p>
                 </div>
@@ -327,7 +319,7 @@
 
     <script>
         // =======================================================
-        // 【核心时钟修复】：确保无论何时加载，时间实时走动
+        // 核心时钟
         // =======================================================
         function updateTimeWidget() {
             const now = new Date();
@@ -340,126 +332,153 @@
         }
 
         // =======================================================
-        // 【系统架构】：全局背景透明，100% 呈现 CSS 的偏白明亮背景
+        // WebGL 场景配置
         // =======================================================
         const container = document.getElementById('webgl-container');
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
         renderer.setClearColor(0x000000, 0);
         container.appendChild(renderer.domElement);
-
         let appState = 'INTRO';
 
         // =======================================================
-        // 场景 A：极度精细的魔法粒子开场
+        // Web Audio API 与音频可视化系统
+        // =======================================================
+        const bgMusic = document.getElementById('main-bg-music');
+        const musicBtn = document.getElementById('music-toggle-btn');
+        const musicText = musicBtn.querySelector('.music-text');
+        const visualizerCanvas = document.getElementById('audio-visualizer');
+        const visCtx = visualizerCanvas.getContext('2d');
+
+        let audioCtx, analyser, dataArray, bufferLength;
+        let isAudioInitialized = false;
+        let currentBassIntensity = 0;
+
+        function resizeCanvas() { visualizerCanvas.width = window.innerWidth; visualizerCanvas.height = window.innerHeight * 0.3; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        musicBtn.addEventListener('click', () => {
+            if (bgMusic.paused) {
+                if (!isAudioInitialized) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = audioCtx.createMediaElementSource(bgMusic);
+                    analyser = audioCtx.createAnalyser(); analyser.fftSize = 256;
+                    source.connect(analyser); analyser.connect(audioCtx.destination);
+                    bufferLength = analyser.frequencyBinCount; dataArray = new Uint8Array(bufferLength);
+                    isAudioInitialized = true;
+                }
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                bgMusic.play();
+                musicBtn.classList.add('playing'); musicText.innerText = 'Playing...';
+                visualizerCanvas.classList.add('active');
+            } else {
+                bgMusic.pause();
+                musicBtn.classList.remove('playing'); musicText.innerText = 'Play Party!!';
+                visualizerCanvas.classList.remove('active');
+            }
+        });
+
+        // =======================================================
+        // 小猫精准卡点换装逻辑
+        // =======================================================
+        const catElement = document.querySelector('.cute-cat');
+        let catHasDressCode = false;
+
+        // ⚠️ 重要：在这里修改小猫带帽子的精确秒数 ⚠️
+        const DRESS_CODE_TIME = 23.5;
+
+        bgMusic.addEventListener('timeupdate', () => {
+            if (bgMusic.currentTime >= DRESS_CODE_TIME && !catHasDressCode) {
+                catElement.classList.add('dress-code');
+                catHasDressCode = true;
+            } else if (bgMusic.currentTime < DRESS_CODE_TIME && catHasDressCode) {
+                catElement.classList.remove('dress-code');
+                catHasDressCode = false;
+            }
+        });
+
+        function drawVisualizer() {
+            if (!isAudioInitialized || bgMusic.paused) return;
+            analyser.getByteFrequencyData(dataArray);
+            visCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+
+            const barWidth = (visualizerCanvas.width / bufferLength) * 2.5; let barHeight; let x = 0;
+            let bassSum = 0; for(let i = 0; i < 10; i++) bassSum += dataArray[i];
+            currentBassIntensity = bassSum / 10 / 255;
+
+            for (let i = 0; i < bufferLength; i++) {
+                barHeight = dataArray[i] * 0.8;
+                const r = 217 - (i * 1.5); const g = 114 + (i * 1.0); const b = 127 + (i * 0.5);
+                visCtx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.25)`;
+                visCtx.beginPath();
+                visCtx.roundRect(x, visualizerCanvas.height - barHeight, barWidth - 2, barHeight, [5, 5, 0, 0]);
+                visCtx.fill(); x += barWidth;
+            }
+        }
+
+        // =======================================================
+        // 场景 A：魔法粒子开场
         // =======================================================
         const introScene = new THREE.Scene();
-        introScene.background = null;
-
         const introCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 3000);
         introCamera.position.z = 800;
-
         const introControls = new THREE.OrbitControls(introCamera, renderer.domElement);
-        introControls.enableDamping = true;
-        introControls.dampingFactor = 0.05;
-        introControls.enableZoom = false;
+        introControls.enableDamping = true; introControls.dampingFactor = 0.05; introControls.enableZoom = false;
 
-        let textParticles;
-        let isAssembling = false;
+        let textParticles; let isAssembling = false;
 
         function createParticleText() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1200; canvas.height = 600;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'black'; ctx.fillRect(0, 0, 1200, 600);
+            const canvas = document.createElement('canvas'); canvas.width = 1200; canvas.height = 600;
+            const ctx = canvas.getContext('2d'); ctx.fillStyle = 'black'; ctx.fillRect(0, 0, 1200, 600);
             ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-
-            ctx.font = 'italic bold 120px "Playfair Display", serif';
-            ctx.fillText('Happy Birthday', 600, 220);
-            ctx.font = 'italic bold 140px "Playfair Display", serif';
-            ctx.fillText('to you, Risu', 600, 390);
+            ctx.font = 'italic bold 120px "Playfair Display", serif'; ctx.fillText('Happy Birthday', 600, 220);
+            ctx.font = 'italic bold 140px "Playfair Display", serif'; ctx.fillText('to you, Risu', 600, 390);
 
             const imgData = ctx.getImageData(0, 0, 1200, 600).data;
             const positions = []; const originalPositions = []; const velocities = []; const colors = [];
-
             const palette = [new THREE.Color(0x5C415D), new THREE.Color(0xD9727F), new THREE.Color(0x7A5B80), new THREE.Color(0xE0A96D)];
             const scale = window.innerWidth < 600 ? 0.45 : 1.0;
 
             for (let y = 0; y < 600; y += 2) {
                 for (let x = 0; x < 1200; x += 2) {
                     if (imgData[(y * 1200 + x) * 4] > 128) {
-                        const px = (x - 600) * scale;
-                        const py = -(y - 300) * scale;
-                        const pz = (Math.random() - 0.5) * 20;
-
-                        const sx = px + (Math.random() - 0.5) * 3500;
-                        const sy = py + (Math.random() - 0.5) * 3500;
-                        const sz = pz + (Math.random() - 0.5) * 3500;
-
-                        positions.push(sx, sy, sz);
-                        originalPositions.push(px, py, pz);
-                        velocities.push(0, 0, 0);
-
-                        const c = palette[Math.floor(Math.random() * palette.length)];
-                        colors.push(c.r, c.g, c.b);
+                        const px = (x - 600) * scale; const py = -(y - 300) * scale; const pz = (Math.random() - 0.5) * 20;
+                        const sx = px + (Math.random() - 0.5) * 3500; const sy = py + (Math.random() - 0.5) * 3500; const sz = pz + (Math.random() - 0.5) * 3500;
+                        positions.push(sx, sy, sz); originalPositions.push(px, py, pz); velocities.push(0, 0, 0);
+                        const c = palette[Math.floor(Math.random() * palette.length)]; colors.push(c.r, c.g, c.b);
                     }
                 }
             }
-
             const geo = new THREE.BufferGeometry();
             geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
             geo.setAttribute('originalPosition', new THREE.Float32BufferAttribute(originalPositions, 3));
             geo.setAttribute('velocity', new THREE.Float32BufferAttribute(velocities, 3));
             geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-            const mat = new THREE.PointsMaterial({
-                size: window.innerWidth < 600 ? 1.5 : 1.8,
-                vertexColors: true, transparent: true, opacity: 0.95,
-                sizeAttenuation: true,
-                blending: THREE.NormalBlending
-            });
-
-            textParticles = new THREE.Points(geo, mat);
-            introScene.add(textParticles);
+            const mat = new THREE.PointsMaterial({ size: window.innerWidth < 600 ? 1.5 : 1.8, vertexColors: true, transparent: true, opacity: 0.95, sizeAttenuation: true, blending: THREE.NormalBlending });
+            textParticles = new THREE.Points(geo, mat); introScene.add(textParticles);
         }
         createParticleText();
 
-        const raycasterIntro = new THREE.Raycaster();
-        const mouseIntro = new THREE.Vector2(-1000, -1000);
-        const planeZ0 = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-        const pointOfIntersection = new THREE.Vector3();
-
+        const raycasterIntro = new THREE.Raycaster(); const mouseIntro = new THREE.Vector2(-1000, -1000);
+        const planeZ0 = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0); const pointOfIntersection = new THREE.Vector3();
         window.addEventListener('mousemove', (e) => {
             if(appState !== 'INTRO') return;
-            mouseIntro.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouseIntro.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            mouseIntro.x = (e.clientX / window.innerWidth) * 2 - 1; mouseIntro.y = -(e.clientY / window.innerHeight) * 2 + 1;
         });
 
         // =======================================================
-        // 剧场帷幕与开场控制
+        // 剧场帷幕与开场
         // =======================================================
         window.addEventListener('DOMContentLoaded', () => {
-            setInterval(updateTimeWidget, 1000);
-            updateTimeWidget();
-
+            setInterval(updateTimeWidget, 1000); updateTimeWidget();
             setTimeout(() => {
-                const loader = document.getElementById('loading-screen');
-                loader.style.opacity = '0';
+                const loader = document.getElementById('loading-screen'); loader.style.opacity = '0';
                 setTimeout(() => {
                     loader.style.display = 'none';
-
-                    document.getElementById('curtain-left').classList.add('open');
-                    document.getElementById('curtain-right').classList.add('open');
-
-                    setTimeout(() => {
-                        isAssembling = true;
-                        setTimeout(() => {
-                            document.getElementById('enter-btn').classList.add('show');
-                        }, 5000);
-                    }, 1200);
-
+                    document.getElementById('curtain-left').classList.add('open'); document.getElementById('curtain-right').classList.add('open');
+                    setTimeout(() => { isAssembling = true; setTimeout(() => { document.getElementById('enter-btn').classList.add('show'); }, 5000); }, 1200);
                 }, 1500);
             }, 800);
         });
@@ -467,465 +486,127 @@
         document.getElementById('enter-btn').addEventListener('click', () => {
             const flash = document.createElement('div');
             flash.style.position = 'fixed'; flash.style.top = '0'; flash.style.left = '0';
-            flash.style.width = '100vw'; flash.style.height = '100vh';
-            flash.style.backgroundColor = '#FFFFFF';
-            flash.style.zIndex = '9999';
-            flash.style.opacity = '0'; flash.style.transition = 'opacity 1s ease';
-            document.body.appendChild(flash);
-
-            flash.offsetHeight;
-            flash.style.opacity = '1';
+            flash.style.width = '100vw'; flash.style.height = '100vh'; flash.style.backgroundColor = '#FFFFFF';
+            flash.style.zIndex = '9999'; flash.style.opacity = '0'; flash.style.transition = 'opacity 1s ease';
+            document.body.appendChild(flash); flash.offsetHeight; flash.style.opacity = '1';
 
             setTimeout(() => {
                 appState = 'MAIN';
                 document.getElementById('intro-ui').style.display = 'none';
                 document.getElementById('main-gallery-ui').classList.add('show');
-
-                const bgm = document.getElementById('music1');
-                if(bgm) bgm.play().catch(e=>console.log("Audio prevented"));
-
                 flash.style.opacity = '0';
-                setTimeout(() => {
-                    flash.remove();
-                    fireMainConfetti();
-                }, 1000);
+                setTimeout(() => { flash.remove(); fireMainConfetti(); }, 1000);
             }, 1000);
         });
 
-
         // =======================================================
-        // 场景 B：纯白马卡龙画廊 (Main Scene)
+        // 场景 B：主画廊 (Main Scene)
         // =======================================================
         const mainScene = new THREE.Scene();
         mainScene.fog = new THREE.FogExp2(0xFFFFFF, 0.0012);
-        mainScene.background = null;
-
         const mainCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
         mainCamera.position.z = 600;
-        const galleryGroup = new THREE.Group();
-        mainScene.add(galleryGroup);
+        const galleryGroup = new THREE.Group(); mainScene.add(galleryGroup);
 
-        const starGeometryMain = new THREE.BufferGeometry();
-        const posArrayMain = new Float32Array(800 * 3);
+        const starGeometryMain = new THREE.BufferGeometry(); const posArrayMain = new Float32Array(800 * 3);
         for(let i=0; i<2400; i++) posArrayMain[i] = (Math.random() - 0.5) * 2500;
         starGeometryMain.setAttribute('position', new THREE.BufferAttribute(posArrayMain, 3));
         const starMaterialMain = new THREE.PointsMaterial({ size: 3.5, color: 0xD9727F, transparent: true, opacity: 0.7, sizeAttenuation: true });
         mainScene.add(new THREE.Points(starGeometryMain, starMaterialMain));
 
-        const photos = [];
-        const numPhotos = window.innerWidth < 600 ? 25 : 40;
+        const photos = []; const numPhotos = window.innerWidth < 600 ? 25 : 40;
         const closedPositions = []; const carouselPositions = [];
-        const plateGeo = new THREE.PlaneGeometry(1, 1);
-        const carouselRadius = Math.max(350, numPhotos * 15);
+        const plateGeo = new THREE.PlaneGeometry(1, 1); const carouselRadius = Math.max(350, numPhotos * 15);
 
         for (let i = 0; i < numPhotos; i++) {
-            const pastelHues = [0.95, 0.05, 0.7, 0.12];
-            const randomHue = pastelHues[Math.floor(Math.random() * pastelHues.length)];
+            const pastelHues = [0.95, 0.05, 0.7, 0.12]; const randomHue = pastelHues[Math.floor(Math.random() * pastelHues.length)];
             const pMat = new THREE.MeshBasicMaterial({ color: new THREE.Color().setHSL(randomHue, 0.6, 0.8), side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
-            const mesh = new THREE.Mesh(plateGeo, pMat);
-            mesh.scale.set(60, 60, 1);
-            galleryGroup.add(mesh); photos.push(mesh);
-
-            const phi = Math.acos(-1 + (2 * i) / numPhotos);
-            const theta = Math.sqrt(numPhotos * Math.PI) * phi;
+            const mesh = new THREE.Mesh(plateGeo, pMat); mesh.scale.set(60, 60, 1); galleryGroup.add(mesh); photos.push(mesh);
+            const phi = Math.acos(-1 + (2 * i) / numPhotos); const theta = Math.sqrt(numPhotos * Math.PI) * phi;
             const r = window.innerWidth < 600 ? 200 : 300;
             closedPositions.push({ x: r * Math.cos(theta) * Math.sin(phi), y: r * Math.sin(theta) * Math.sin(phi), z: r * Math.cos(phi) - 150, rx: Math.random() * Math.PI, ry: Math.random() * Math.PI, rz: Math.random() * Math.PI });
-
             const angle = (i / numPhotos) * Math.PI * 2;
             carouselPositions.push({ x: Math.cos(angle) * carouselRadius, y: (i % 2 === 0 ? 60 : -60) + Math.sin(angle * 4) * 30, z: Math.sin(angle) * carouselRadius, rx: 0, ry: -angle + Math.PI / 2, rz: 0 });
         }
 
-        // =======================================================
-        // 主页交互与动画逻辑
-        // =======================================================
         let mainState = 'CLOSED'; let activePhoto = null; let originalLocalPos = null; let originalLocalRot = null;
-
         document.getElementById('backBtn').addEventListener('click', (e) => { e.stopPropagation(); transitionToClosed(); });
         document.getElementById('scatterBtn').addEventListener('click', () => { transitionToCarousel(); });
 
-        function transitionToClosed() {
-            mainState = 'CLOSED'; document.getElementById('cardWrapper').classList.remove('hidden-wrapper'); document.getElementById('swipeHint').classList.remove('show-hint'); document.getElementById('backBtn').classList.remove('show');
-            photos.forEach((mesh, i) => {
-                new TWEEN.Tween(mesh.position).to({ x: closedPositions[i].x, y: closedPositions[i].y, z: closedPositions[i].z }, 1800).easing(TWEEN.Easing.Exponential.Out).start();
-                new TWEEN.Tween(mesh.rotation).to({ x: closedPositions[i].rx, y: closedPositions[i].ry, z: closedPositions[i].rz }, 1800).easing(TWEEN.Easing.Exponential.Out).start();
-            });
-        }
-        function transitionToCarousel() {
-            mainState = 'CAROUSEL'; document.getElementById('cardWrapper').classList.add('hidden-wrapper'); document.getElementById('swipeHint').classList.add('show-hint'); document.getElementById('backBtn').classList.add('show');
-            photos.forEach((mesh, i) => {
-                new TWEEN.Tween(mesh.position).to({ x: carouselPositions[i].x, y: carouselPositions[i].y, z: carouselPositions[i].z }, 2500).easing(TWEEN.Easing.Cubic.Out).start();
-                new TWEEN.Tween(mesh.rotation).to({ x: carouselPositions[i].rx, y: carouselPositions[i].ry, z: carouselPositions[i].rz }, 2500).easing(TWEEN.Easing.Cubic.Out).start();
-            });
-        }
+        function transitionToClosed() { mainState = 'CLOSED'; document.getElementById('cardWrapper').classList.remove('hidden-wrapper'); document.getElementById('swipeHint').classList.remove('show-hint'); document.getElementById('backBtn').classList.remove('show'); photos.forEach((mesh, i) => { new TWEEN.Tween(mesh.position).to({ x: closedPositions[i].x, y: closedPositions[i].y, z: closedPositions[i].z }, 1800).easing(TWEEN.Easing.Exponential.Out).start(); new TWEEN.Tween(mesh.rotation).to({ x: closedPositions[i].rx, y: closedPositions[i].ry, z: closedPositions[i].rz }, 1800).easing(TWEEN.Easing.Exponential.Out).start(); }); }
+        function transitionToCarousel() { mainState = 'CAROUSEL'; document.getElementById('cardWrapper').classList.add('hidden-wrapper'); document.getElementById('swipeHint').classList.add('show-hint'); document.getElementById('backBtn').classList.add('show'); photos.forEach((mesh, i) => { new TWEEN.Tween(mesh.position).to({ x: carouselPositions[i].x, y: carouselPositions[i].y, z: carouselPositions[i].z }, 2500).easing(TWEEN.Easing.Cubic.Out).start(); new TWEEN.Tween(mesh.rotation).to({ x: carouselPositions[i].rx, y: carouselPositions[i].ry, z: carouselPositions[i].rz }, 2500).easing(TWEEN.Easing.Cubic.Out).start(); }); }
 
         const raycasterMain = new THREE.Raycaster(); const pointerMain = new THREE.Vector2();
         let isDragging = false; let hasDragged = false; let previousMouseX = 0; let pointerDownPos = { x: 0, y: 0 }; let targetGalleryRotation = 0;
 
-        renderer.domElement.addEventListener('pointerdown', (e) => {
-            if(appState !== 'MAIN') return;
-            isDragging = true; hasDragged = false; previousMouseX = e.clientX; pointerDownPos.x = e.clientX; pointerDownPos.y = e.clientY;
-        });
-        renderer.domElement.addEventListener('pointermove', (e) => {
-            if(appState !== 'MAIN' || !isDragging) return;
-            if (Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) > 15) { hasDragged = true; }
-            if (mainState === 'CAROUSEL') { targetGalleryRotation += (e.clientX - previousMouseX) * 0.004; previousMouseX = e.clientX; }
-        });
+        renderer.domElement.addEventListener('pointerdown', (e) => { if(appState !== 'MAIN') return; isDragging = true; hasDragged = false; previousMouseX = e.clientX; pointerDownPos.x = e.clientX; pointerDownPos.y = e.clientY; });
+        renderer.domElement.addEventListener('pointermove', (e) => { if(appState !== 'MAIN' || !isDragging) return; if (Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) > 15) { hasDragged = true; } if (mainState === 'CAROUSEL') { targetGalleryRotation += (e.clientX - previousMouseX) * 0.004; previousMouseX = e.clientX; } });
         renderer.domElement.addEventListener('pointerup', (e) => {
-            if(appState !== 'MAIN') return;
-            isDragging = false; if (hasDragged) return;
-
+            if(appState !== 'MAIN') return; isDragging = false; if (hasDragged) return;
             if (mainState === 'CLOSED') return;
-            if (mainState === 'ZOOMED') {
-                if (activePhoto) {
-                    mainState = 'CAROUSEL'; document.getElementById('swipeHint').classList.add('show-hint'); document.getElementById('backBtn').classList.add('show');
-                    galleryGroup.attach(activePhoto);
-                    new TWEEN.Tween(activePhoto.position).to({ x: originalLocalPos.x, y: originalLocalPos.y, z: originalLocalPos.z }, 1200).easing(TWEEN.Easing.Cubic.InOut).start();
-                    new TWEEN.Tween(activePhoto.rotation).to({ x: originalLocalRot.x, y: originalLocalRot.y, z: originalLocalRot.z }, 1200).easing(TWEEN.Easing.Cubic.InOut).start();
-                } return;
-            }
-            pointerMain.x = ((e.clientX - renderer.domElement.getBoundingClientRect().left) / window.innerWidth) * 2 - 1;
-            pointerMain.y = -((e.clientY - renderer.domElement.getBoundingClientRect().top) / window.innerHeight) * 2 + 1;
-            raycasterMain.setFromCamera(pointerMain, mainCamera);
-            const intersects = raycasterMain.intersectObjects(photos);
-
-            if (intersects.length > 0) {
-                activePhoto = intersects[0].object; originalLocalPos = activePhoto.position.clone(); originalLocalRot = activePhoto.rotation.clone();
-                mainScene.attach(activePhoto); mainState = 'ZOOMED'; document.getElementById('swipeHint').classList.remove('show-hint'); document.getElementById('backBtn').classList.remove('show');
-                new TWEEN.Tween(activePhoto.position).to({ x: 0, y: 0, z: mainCamera.position.z - (window.innerWidth < 600 ? 100 : 60) }, 1200).easing(TWEEN.Easing.Cubic.Out).start();
-                new TWEEN.Tween(activePhoto.rotation).to({ x: 0, y: 0, z: 0 }, 1200).easing(TWEEN.Easing.Cubic.Out).start();
-            }
+            if (mainState === 'ZOOMED') { if (activePhoto) { mainState = 'CAROUSEL'; document.getElementById('swipeHint').classList.add('show-hint'); document.getElementById('backBtn').classList.add('show'); galleryGroup.attach(activePhoto); new TWEEN.Tween(activePhoto.position).to({ x: originalLocalPos.x, y: originalLocalPos.y, z: originalLocalPos.z }, 1200).easing(TWEEN.Easing.Cubic.InOut).start(); new TWEEN.Tween(activePhoto.rotation).to({ x: originalLocalRot.x, y: originalLocalRot.y, z: originalLocalRot.z }, 1200).easing(TWEEN.Easing.Cubic.InOut).start(); } return; }
+            pointerMain.x = ((e.clientX - renderer.domElement.getBoundingClientRect().left) / window.innerWidth) * 2 - 1; pointerMain.y = -((e.clientY - renderer.domElement.getBoundingClientRect().top) / window.innerHeight) * 2 + 1;
+            raycasterMain.setFromCamera(pointerMain, mainCamera); const intersects = raycasterMain.intersectObjects(photos);
+            if (intersects.length > 0) { activePhoto = intersects[0].object; originalLocalPos = activePhoto.position.clone(); originalLocalRot = activePhoto.rotation.clone(); mainScene.attach(activePhoto); mainState = 'ZOOMED'; document.getElementById('swipeHint').classList.remove('show-hint'); document.getElementById('backBtn').classList.remove('show'); new TWEEN.Tween(activePhoto.position).to({ x: 0, y: 0, z: mainCamera.position.z - (window.innerWidth < 600 ? 100 : 60) }, 1200).easing(TWEEN.Easing.Cubic.Out).start(); new TWEEN.Tween(activePhoto.rotation).to({ x: 0, y: 0, z: 0 }, 1200).easing(TWEEN.Easing.Cubic.Out).start(); }
         });
 
         document.getElementById('cat-trigger').addEventListener('click', () => { document.getElementById('secret-letter-overlay').classList.add('show'); });
         document.getElementById('close-letter').addEventListener('click', () => { document.getElementById('secret-letter-overlay').classList.remove('show'); });
 
         const decos = [ { selector: '.deco-plane', animClass: 'anim-plane' }, { selector: '.deco-envelope', animClass: 'anim-envelope', hasConfetti: true }, { selector: '.deco-star', animClass: 'anim-star' }, { selector: '.deco-moon', animClass: 'anim-moon' } ];
-        decos.forEach(item => {
-            const el = document.querySelector(item.selector);
-            if (!el) return;
-            el.addEventListener('click', () => {
-                if (el.classList.contains(item.animClass)) return;
-                el.classList.add(item.animClass);
-                if (item.hasConfetti) confetti({ particleCount: 20, spread: 50, origin: { x: (el.getBoundingClientRect().left + 22) / window.innerWidth, y: (el.getBoundingClientRect().top + 22) / window.innerHeight }, colors: ['#E0A96D', '#D9727F', '#A890CE'], zIndex: 100 });
-                el.addEventListener('animationend', () => { el.classList.remove(item.animClass); }, { once: true });
-            });
-        });
+        decos.forEach(item => { const el = document.querySelector(item.selector); if (!el) return; el.addEventListener('click', () => { if (el.classList.contains(item.animClass)) return; el.classList.add(item.animClass); if (item.hasConfetti) confetti({ particleCount: 20, spread: 50, origin: { x: (el.getBoundingClientRect().left + 22) / window.innerWidth, y: (el.getBoundingClientRect().top + 22) / window.innerHeight }, colors: ['#E0A96D', '#D9727F', '#A890CE'], zIndex: 100 }); el.addEventListener('animationend', () => { el.classList.remove(item.animClass); }, { once: true }); }); });
 
         const uploadBtn = document.getElementById('uploadBtn'); const uploadInput = document.getElementById('uploadInput'); const texLoader = new THREE.TextureLoader(); let pIdx = 0; let pTotal = 0;
         uploadBtn.addEventListener('click', () => { uploadInput.click(); });
-        uploadInput.addEventListener('change', (e) => {
-            const files = e.target.files; if (!files.length) return;
-            let loadedCount = 0; uploadBtn.innerText = "✨ 正在冲洗...";
-            for (let i = 0; i < files.length; i++) {
-                const url = URL.createObjectURL(files[i]);
-                texLoader.load(url, (tex) => {
-                    tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-                    const m = photos[pIdx % numPhotos]; const ar = tex.image.width / tex.image.height;
-                    m.scale.set(100, 100 / ar, 1); m.material.map = tex; m.material.color.setHex(0xffffff); m.material.transparent = false; m.material.opacity = 1.0; m.material.needsUpdate = true;
-                    pIdx++; loadedCount++;
-                    if (loadedCount === files.length) { pTotal += files.length; uploadBtn.innerText = `📸 继续放入 (${pTotal})`; URL.revokeObjectURL(url); }
-                });
-            }
-        });
+        uploadInput.addEventListener('change', (e) => { const files = e.target.files; if (!files.length) return; let loadedCount = 0; uploadBtn.innerText = "✨ 正在冲洗..."; for (let i = 0; i < files.length; i++) { const url = URL.createObjectURL(files[i]); texLoader.load(url, (tex) => { tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.anisotropy = renderer.capabilities.getMaxAnisotropy(); const m = photos[pIdx % numPhotos]; const ar = tex.image.width / tex.image.height; m.scale.set(100, 100 / ar, 1); m.material.map = tex; m.material.color.setHex(0xffffff); m.material.transparent = false; m.material.opacity = 1.0; m.material.needsUpdate = true; pIdx++; loadedCount++; if (loadedCount === files.length) { pTotal += files.length; uploadBtn.innerText = `📸 继续放入 (${pTotal})`; URL.revokeObjectURL(url); } }); } });
 
-        function fireMainConfetti() {
-            const isMobile = window.innerWidth < 600;
-            const count = isMobile ? 6 : 12;
-            const duration = 4000;
-            const end = Date.now() + duration;
-            (function frame() {
-                const colors = ['#D9727F', '#A890CE', '#FFFFFF', '#E0A96D', '#FFD166'];
-                confetti({ particleCount: count, angle: 60, spread: 80, origin: { x: 0, y: 0.8 }, colors: colors, zIndex: 100 });
-                confetti({ particleCount: count, angle: 120, spread: 80, origin: { x: 1, y: 0.8 }, colors: colors, zIndex: 100 });
-                if (Math.random() > 0.5) confetti({ particleCount: count/2, angle: 270, spread: 100, origin: { x: 0.5, y: -0.1 }, colors: colors, zIndex: 100, gravity: 0.8, startVelocity: 15 });
-                if (Date.now() < end) requestAnimationFrame(frame);
-            }());
-        }
+        function fireMainConfetti() { const isMobile = window.innerWidth < 600; const count = isMobile ? 6 : 12; const duration = 4000; const end = Date.now() + duration; (function frame() { const colors = ['#D9727F', '#A890CE', '#FFFFFF', '#E0A96D', '#FFD166']; confetti({ particleCount: count, angle: 60, spread: 80, origin: { x: 0, y: 0.8 }, colors: colors, zIndex: 100 }); confetti({ particleCount: count, angle: 120, spread: 80, origin: { x: 1, y: 0.8 }, colors: colors, zIndex: 100 }); if (Math.random() > 0.5) confetti({ particleCount: count/2, angle: 270, spread: 100, origin: { x: 0.5, y: -0.1 }, colors: colors, zIndex: 100, gravity: 0.8, startVelocity: 15 }); if (Date.now() < end) requestAnimationFrame(frame); }()); }
 
         // =======================================================
-        // 【终极彩蛋：程序员的浪漫终端 (打字速度优化版)】
+        // 程序员的浪漫终端
         // =======================================================
-        let clickCount = 0;
-        let clickTimer;
-        let keyBuffer = '';
-        let isTyping = false;
-        let typeTimeout;
-        let idleTimer; // 新增：终端发呆计时器
+        let clickCount = 0; let clickTimer; let keyBuffer = ''; let isTyping = false; let typeTimeout; let idleTimer;
+        const terminalLines = [ "Risu,", "这是给你的生日蛋糕，", "当然是吃不了的", "不过希望你开心", "蛋糕加载中......", "加载中......", "......", "骗你的其实不需要加载", "", "       ,,,,,       ", "      _|||||_      ", "     {~*~*~*~}     ", "   __{*~*~*~*}__   ", "  `-------------`  ", "", "> Happy Birthday, Risu. Love, sw." ];
 
-        const terminalLines = [
-            "Risu,",
-            "这是给你的生日蛋糕，",
-            "当然是吃不了的",
-            "不过希望你开心",
-            "蛋糕加载中......",
-            "加载中......",
-            "......",
-            "骗你的其实不需要加载",
-            "",
-            "       ,,,,,       ",
-            "      _|||||_      ",
-            "     {~*~*~*~}     ",
-            "   __{*~*~*~*}__   ",
-            "  `-------------`  ",
-            "",
-            "> Happy Birthday, Risu. Love, sw."
-        ];
+        window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { hideTerminal(); return; } if (e.key.length === 1) { keyBuffer += e.key.toLowerCase(); if (keyBuffer.length > 10) keyBuffer = keyBuffer.slice(-10); if (keyBuffer.endsWith('risu')) { showTerminal(); keyBuffer = ''; } } });
+        window.addEventListener('click', (e) => { if (document.getElementById('terminal-overlay').classList.contains('show')) return; clickCount++; clearTimeout(clickTimer); clickTimer = setTimeout(() => { clickCount = 0; }, 1000); if (clickCount >= 16) { showTerminal(); clickCount = 0; } });
+        let termClickTimer = 0; document.getElementById('terminal-overlay').addEventListener('click', () => { const now = new Date().getTime(); if (now - termClickTimer < 400) { hideTerminal(); } termClickTimer = now; });
 
-        // 触发机制 1：键盘输入 R I S U
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                hideTerminal();
-                return;
-            }
-            if (e.key.length === 1) {
-                keyBuffer += e.key.toLowerCase();
-                if (keyBuffer.length > 10) keyBuffer = keyBuffer.slice(-10);
-                if (keyBuffer.endsWith('risu')) {
-                    showTerminal();
-                    keyBuffer = '';
-                }
-            }
-        });
+        function showTerminal() { const overlay = document.getElementById('terminal-overlay'); if (overlay.classList.contains('show')) return; overlay.classList.add('show'); document.getElementById('terminal-content').innerHTML = ''; isTyping = true; clearTimeout(idleTimer); typeLines(0, 0); }
+        function hideTerminal() { const overlay = document.getElementById('terminal-overlay'); overlay.classList.remove('show'); isTyping = false; clearTimeout(typeTimeout); clearTimeout(idleTimer); }
+        function typeLines(lineIdx, charIdx) { if (!isTyping) return; const contentDiv = document.getElementById('terminal-content'); if (lineIdx < terminalLines.length) { if (charIdx === 0) { const newLine = document.createElement('span'); newLine.className = 'term-line'; const oldCursor = document.querySelector('.term-cursor'); if (oldCursor) oldCursor.remove(); contentDiv.appendChild(newLine); contentDiv.innerHTML += '<span class="term-cursor">█</span>'; contentDiv.scrollTop = contentDiv.scrollHeight; } const lines = contentDiv.getElementsByClassName('term-line'); const currentLine = lines[lines.length - 1]; if (charIdx < terminalLines[lineIdx].length) { const char = terminalLines[lineIdx].charAt(charIdx); currentLine.innerHTML += char; let baseDelay = 40; let randomFactor = 30; if (lineIdx >= 0 && lineIdx <= 7) { baseDelay = 180; randomFactor = 150; if (char === '，' || char === ',' || char === '.' || char === '。') baseDelay += 300; } else if (lineIdx >= 9 && lineIdx <= 13) { baseDelay = 10; randomFactor = 10; } else if (lineIdx === 15) { baseDelay = 120; randomFactor = 80; } const delay = Math.random() * randomFactor + baseDelay; typeTimeout = setTimeout(() => typeLines(lineIdx, charIdx + 1), delay); } else { currentLine.innerHTML += '<br>'; let lineBreakDelay = 300; if (lineIdx >= 0 && lineIdx <= 7) lineBreakDelay = 1000; else if (lineIdx >= 9 && lineIdx <= 13) lineBreakDelay = 50; typeTimeout = setTimeout(() => typeLines(lineIdx + 1, 0), lineBreakDelay); } } else { isTyping = false; idleTimer = setTimeout(() => { if (document.getElementById('terminal-overlay').classList.contains('show')) { isTyping = true; typeCatLines(0, 0); } }, 8000); } }
 
-        // 触发机制 2：连续点击 16 次
-        window.addEventListener('click', (e) => {
-            if (document.getElementById('terminal-overlay').classList.contains('show')) return;
-
-            clickCount++;
-            clearTimeout(clickTimer);
-            clickTimer = setTimeout(() => { clickCount = 0; }, 1000);
-
-            if (clickCount >= 16) {
-                showTerminal();
-                clickCount = 0;
-            }
-        });
-
-        // 手机端双击退出终端
-        let termClickTimer = 0;
-        document.getElementById('terminal-overlay').addEventListener('click', () => {
-            const now = new Date().getTime();
-            if (now - termClickTimer < 400) { hideTerminal(); }
-            termClickTimer = now;
-        });
-
-        function showTerminal() {
-            const overlay = document.getElementById('terminal-overlay');
-            if (overlay.classList.contains('show')) return;
-            overlay.classList.add('show');
-            document.getElementById('terminal-content').innerHTML = '';
-            isTyping = true;
-            clearTimeout(idleTimer);
-            typeLines(0, 0);
-        }
-
-        function hideTerminal() {
-            const overlay = document.getElementById('terminal-overlay');
-            overlay.classList.remove('show');
-            isTyping = false;
-            clearTimeout(typeTimeout);
-            clearTimeout(idleTimer); // 安全清理
-        }
-
-        function typeLines(lineIdx, charIdx) {
-            if (!isTyping) return;
-            const contentDiv = document.getElementById('terminal-content');
-
-            if (lineIdx < terminalLines.length) {
-                if (charIdx === 0) {
-                    const newLine = document.createElement('span');
-                    newLine.className = 'term-line';
-
-                    const oldCursor = document.querySelector('.term-cursor');
-                    if (oldCursor) oldCursor.remove();
-
-                    contentDiv.appendChild(newLine);
-                    contentDiv.innerHTML += '<span class="term-cursor">█</span>';
-
-                    contentDiv.scrollTop = contentDiv.scrollHeight;
-                }
-
-                const lines = contentDiv.getElementsByClassName('term-line');
-                const currentLine = lines[lines.length - 1];
-
-                if (charIdx < terminalLines[lineIdx].length) {
-                    const char = terminalLines[lineIdx].charAt(charIdx);
-                    currentLine.innerHTML += char;
-
-                    let baseDelay = 40;
-                    let randomFactor = 30;
-
-                    if (lineIdx >= 0 && lineIdx <= 7) {
-                        baseDelay = 180;
-                        randomFactor = 150;
-                        if (char === '，' || char === ',' || char === '.' || char === '。') {
-                            baseDelay += 300;
-                        }
-                    } else if (lineIdx >= 9 && lineIdx <= 13) {
-                        baseDelay = 10;
-                        randomFactor = 10;
-                    } else if (lineIdx === 15) {
-                        baseDelay = 120;
-                        randomFactor = 80;
-                    }
-
-                    const delay = Math.random() * randomFactor + baseDelay;
-                    typeTimeout = setTimeout(() => typeLines(lineIdx, charIdx + 1), delay);
-                } else {
-                    currentLine.innerHTML += '<br>';
-                    let lineBreakDelay = 300;
-                    if (lineIdx >= 0 && lineIdx <= 7) lineBreakDelay = 1000;
-                    else if (lineIdx >= 9 && lineIdx <= 13) lineBreakDelay = 50;
-
-                    typeTimeout = setTimeout(() => typeLines(lineIdx + 1, 0), lineBreakDelay);
-                }
-            } else {
-                isTyping = false;
-
-                // 【新增核心功能】：长时间停留不退出，触发小黑猫彩蛋
-                idleTimer = setTimeout(() => {
-                    if (document.getElementById('terminal-overlay').classList.contains('show')) {
-                        isTyping = true;
-                        typeCatLines(0, 0);
-                    }
-                }, 8000); // 停留 8 秒后触发
-            }
-        }
-
-        // --- 升级版：更精致毛茸茸的小黑猫彩蛋文字 ---
-        const catLines = [
-            "",
-            "......",
-            "怎么了，还不退出吗？",
-            "那再给你一只毛茸茸的小黑猫：",
-            "",
-            "       /\\_____/\\",
-            "      /  o   o  \\",
-            "     ( ==  ^  == )",
-            "      )         (",
-            "     (           )",
-            "    ( (  )   (  ) )",
-            "   (__(__)___(__)__)  < Meow~!"
-        ];
-
-        function typeCatLines(lineIdx, charIdx) {
-            if (!isTyping) return;
-            const contentDiv = document.getElementById('terminal-content');
-
-            if (lineIdx < catLines.length) {
-                if (charIdx === 0) {
-                    const newLine = document.createElement('span');
-                    newLine.className = 'term-line';
-                    const oldCursor = document.querySelector('.term-cursor');
-                    if (oldCursor) oldCursor.remove();
-                    contentDiv.appendChild(newLine);
-                    contentDiv.innerHTML += '<span class="term-cursor">█</span>';
-                    contentDiv.scrollTop = contentDiv.scrollHeight;
-                }
-
-                const lines = contentDiv.getElementsByClassName('term-line');
-                const currentLine = lines[lines.length - 1];
-
-                if (charIdx < catLines[lineIdx].length) {
-                    const char = catLines[lineIdx].charAt(charIdx);
-
-                    // 防止被识别为 HTML 标签
-                    let displayChar = char;
-                    if (char === '<') displayChar = '&lt;';
-                    if (char === '>') displayChar = '&gt;';
-
-                    currentLine.innerHTML += displayChar;
-
-                    // 猫咪文本的速度控制
-                    let delay = Math.random() * 40 + 60;
-                    if (lineIdx >= 5) { delay = 10; } // ASCII画的输出速度极快
-
-                    typeTimeout = setTimeout(() => typeCatLines(lineIdx, charIdx + 1), delay);
-                } else {
-                    currentLine.innerHTML += '<br>';
-                    let breakDelay = 300;
-                    if (lineIdx === 1 || lineIdx === 2) breakDelay = 1200; // 说话时停顿久一点
-                    if (lineIdx >= 5) breakDelay = 50;
-
-                    typeTimeout = setTimeout(() => typeCatLines(lineIdx + 1, 0), breakDelay);
-                }
-            } else {
-                isTyping = false;
-            }
-        }
+        const catLines = [ "", "......", "怎么了，还不退出吗？", "那再给你一只毛茸茸的小黑猫：", "", "       /\\_____/\\", "      /  o   o  \\", "     ( ==  ^  == )", "      )         (", "     (           )", "    ( (  )   (  ) )", "   (__(__)___(__)__)  < Meow~!" ];
+        function typeCatLines(lineIdx, charIdx) { if (!isTyping) return; const contentDiv = document.getElementById('terminal-content'); if (lineIdx < catLines.length) { if (charIdx === 0) { const newLine = document.createElement('span'); newLine.className = 'term-line'; const oldCursor = document.querySelector('.term-cursor'); if (oldCursor) oldCursor.remove(); contentDiv.appendChild(newLine); contentDiv.innerHTML += '<span class="term-cursor">█</span>'; contentDiv.scrollTop = contentDiv.scrollHeight; } const lines = contentDiv.getElementsByClassName('term-line'); const currentLine = lines[lines.length - 1]; if (charIdx < catLines[lineIdx].length) { const char = catLines[lineIdx].charAt(charIdx); let displayChar = char; if (char === '<') displayChar = '&lt;'; if (char === '>') displayChar = '&gt;'; currentLine.innerHTML += displayChar; let delay = Math.random() * 40 + 60; if (lineIdx >= 5) delay = 10; typeTimeout = setTimeout(() => typeCatLines(lineIdx, charIdx + 1), delay); } else { currentLine.innerHTML += '<br>'; let breakDelay = 300; if (lineIdx === 1 || lineIdx === 2) breakDelay = 1200; if (lineIdx >= 5) breakDelay = 50; typeTimeout = setTimeout(() => typeCatLines(lineIdx + 1, 0), breakDelay); } } else { isTyping = false; } }
 
         // =======================================================
-        // 核心渲染大循环 (Render Loop)
+        // 核心渲染循环
         // =======================================================
         transitionToClosed();
 
         function animate() {
-            requestAnimationFrame(animate); TWEEN.update();
-            const time = Date.now() * 0.001;
+            requestAnimationFrame(animate); TWEEN.update(); const time = Date.now() * 0.001;
+            drawVisualizer();
 
             if (appState === 'INTRO') {
-                introControls.update();
-
-                const pulseScale = 1 + Math.sin(time * 2) * 0.15;
-                textParticles.material.size = (window.innerWidth < 600 ? 1.5 : 1.8) * pulseScale;
-
-                raycasterIntro.setFromCamera(mouseIntro, introCamera);
-                raycasterIntro.ray.intersectPlane(planeZ0, pointOfIntersection);
-
-                const positions = textParticles.geometry.attributes.position.array;
-                const origins = textParticles.geometry.attributes.originalPosition.array;
-                const vels = textParticles.geometry.attributes.velocity.array;
-
+                introControls.update(); const pulseScale = 1 + Math.sin(time * 2) * 0.15; textParticles.material.size = (window.innerWidth < 600 ? 1.5 : 1.8) * pulseScale;
+                raycasterIntro.setFromCamera(mouseIntro, introCamera); raycasterIntro.ray.intersectPlane(planeZ0, pointOfIntersection);
+                const positions = textParticles.geometry.attributes.position.array; const origins = textParticles.geometry.attributes.originalPosition.array; const vels = textParticles.geometry.attributes.velocity.array;
                 for (let i = 0; i < positions.length; i += 3) {
-                    let px = positions[i], py = positions[i+1], pz = positions[i+2];
-                    let ox = origins[i], oy = origins[i+1], oz = origins[i+2];
-                    let vx = vels[i], vy = vels[i+1], vz = vels[i+2];
-
-                    if (isAssembling) {
-                        let dx = px - pointOfIntersection.x;
-                        let dy = py - pointOfIntersection.y;
-                        let distSq = dx*dx + dy*dy;
-                        if (distSq < 1500) {
-                            let force = (1500 - distSq) * 0.0001;
-                            vx += dx * force; vy += dy * force;
-                        }
-
-                        vx += (ox - px) * 0.004;
-                        vy += (oy - py) * 0.004;
-                        vz += (oz - pz) * 0.004;
-                    } else {
-                        vx += (Math.random() - 0.5) * 0.1;
-                        vy += (Math.random() - 0.5) * 0.1;
-                        vz += (Math.random() - 0.5) * 0.1;
-                    }
-
-                    vx *= 0.90; vy *= 0.90; vz *= 0.90;
-
-                    positions[i] += vx; positions[i+1] += vy; positions[i+2] += vz;
-                    vels[i] = vx; vels[i+1] = vy; vels[i+2] = vz;
+                    let px = positions[i], py = positions[i+1], pz = positions[i+2]; let ox = origins[i], oy = origins[i+1], oz = origins[i+2]; let vx = vels[i], vy = vels[i+1], vz = vels[i+2];
+                    if (isAssembling) { let dx = px - pointOfIntersection.x; let dy = py - pointOfIntersection.y; let distSq = dx*dx + dy*dy; if (distSq < 1500) { let force = (1500 - distSq) * 0.0001; vx += dx * force; vy += dy * force; } vx += (ox - px) * 0.004; vy += (oy - py) * 0.004; vz += (oz - pz) * 0.004; } else { vx += (Math.random() - 0.5) * 0.1; vy += (Math.random() - 0.5) * 0.1; vz += (Math.random() - 0.5) * 0.1; }
+                    vx *= 0.90; vy *= 0.90; vz *= 0.90; positions[i] += vx; positions[i+1] += vy; positions[i+2] += vz; vels[i] = vx; vels[i+1] = vy; vels[i+2] = vz;
                 }
-                textParticles.geometry.attributes.position.needsUpdate = true;
-                renderer.render(introScene, introCamera);
-
+                textParticles.geometry.attributes.position.needsUpdate = true; renderer.render(introScene, introCamera);
             } else if (appState === 'MAIN') {
-                if (mainState === 'CLOSED') {
-                    galleryGroup.rotation.y += 0.002; galleryGroup.rotation.x = 0.1; targetGalleryRotation = galleryGroup.rotation.y;
-                } else if (mainState === 'CAROUSEL' || mainState === 'ZOOMED') {
-                    if (!isDragging) targetGalleryRotation -= 0.001;
-                    galleryGroup.rotation.x = 0; galleryGroup.rotation.y += (targetGalleryRotation - galleryGroup.rotation.y) * 0.1;
-                    if (mainState === 'CAROUSEL') photos.forEach((mesh, i) => { mesh.position.y += Math.sin(time + i) * 0.05; });
-                }
+                const scaleResonance = 1 + (currentBassIntensity * 0.08); galleryGroup.scale.set(scaleResonance, scaleResonance, scaleResonance);
+                if (mainState === 'CLOSED') { galleryGroup.rotation.y += 0.002; galleryGroup.rotation.x = 0.1; targetGalleryRotation = galleryGroup.rotation.y; } else if (mainState === 'CAROUSEL' || mainState === 'ZOOMED') { if (!isDragging) targetGalleryRotation -= 0.001; galleryGroup.rotation.x = 0; galleryGroup.rotation.y += (targetGalleryRotation - galleryGroup.rotation.y) * 0.1; if (mainState === 'CAROUSEL') photos.forEach((mesh, i) => { mesh.position.y += Math.sin(time + i) * 0.05; }); }
                 renderer.render(mainScene, mainCamera);
             }
         }
-
         animate();
 
-        window.addEventListener('resize', () => {
-            introCamera.aspect = window.innerWidth / window.innerHeight; introCamera.updateProjectionMatrix();
-            mainCamera.aspect = window.innerWidth / window.innerHeight; mainCamera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        window.addEventListener('resize', () => { introCamera.aspect = window.innerWidth / window.innerHeight; introCamera.updateProjectionMatrix(); mainCamera.aspect = window.innerWidth / window.innerHeight; mainCamera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
     </script>
 </body>
 </html>
