@@ -201,6 +201,23 @@
             border: 1px solid rgba(0, 255, 65, 0.3); border-radius: 8px;
             background: rgba(0, 0, 0, 0.5);
         }
+
+        /* --- 新增：定制终端幽灵绿滚动条 --- */
+        #terminal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        #terminal-content::-webkit-scrollbar-track {
+            background: rgba(0, 255, 65, 0.05);
+            border-radius: 4px;
+        }
+        #terminal-content::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 65, 0.3);
+            border-radius: 4px;
+        }
+        #terminal-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 65, 0.6);
+        }
+
         .term-cursor {
             display: inline-block; width: 10px; height: 18px; background-color: #00FF41;
             animation: blinkTerm 1s step-end infinite; vertical-align: bottom; margin-left: 2px;
@@ -240,8 +257,8 @@
     <div id="webgl-container"></div>
 
     <div id="intro-ui">
-        <div class="intro-hint">拖拽旋转视角 / 鼠标轻触星尘</div>
-        <button id="enter-btn">✨ 进入专属画廊 ✨</button>
+        <div class="intro-hint">可以鼠标拖拽旋转视角</div>
+        <button id="enter-btn">点！</button>
     </div>
 
     <div id="main-gallery-ui" class="main-ui-layer">
@@ -614,7 +631,7 @@
         function fireMainConfetti() {
             const isMobile = window.innerWidth < 600;
             const count = isMobile ? 6 : 12;
-            const duration = 8000;
+            const duration = 4000;
             const end = Date.now() + duration;
             (function frame() {
                 const colors = ['#D9727F', '#A890CE', '#FFFFFF', '#E0A96D', '#FFD166'];
@@ -633,6 +650,7 @@
         let keyBuffer = '';
         let isTyping = false;
         let typeTimeout;
+        let idleTimer; // 新增：终端发呆计时器
 
         const terminalLines = [
             "Risu,",
@@ -697,7 +715,8 @@
             overlay.classList.add('show');
             document.getElementById('terminal-content').innerHTML = '';
             isTyping = true;
-            typeLines(0, 0); // 从第0行，第0个字符开始打字
+            clearTimeout(idleTimer);
+            typeLines(0, 0);
         }
 
         function hideTerminal() {
@@ -705,9 +724,9 @@
             overlay.classList.remove('show');
             isTyping = false;
             clearTimeout(typeTimeout);
+            clearTimeout(idleTimer); // 安全清理
         }
 
-        // 核心时间控制引擎：模拟真人缓慢打字
         function typeLines(lineIdx, charIdx) {
             if (!isTyping) return;
             const contentDiv = document.getElementById('terminal-content');
@@ -733,25 +752,19 @@
                     const char = terminalLines[lineIdx].charAt(charIdx);
                     currentLine.innerHTML += char;
 
-                    // --- 速度控制核心逻辑 ---
-                    let baseDelay = 40;  // 默认极快速度（适用于系统提示音）
+                    let baseDelay = 40;
                     let randomFactor = 30;
 
                     if (lineIdx >= 0 && lineIdx <= 7) {
-                        // 悄悄话部分，打字速度放得很慢，模拟人在思考和敲击
                         baseDelay = 180;
                         randomFactor = 150;
-
-                        // 遇到标点符号（逗号、句号、省略号），额外大幅停顿
                         if (char === '，' || char === ',' || char === '.' || char === '。') {
                             baseDelay += 300;
                         }
                     } else if (lineIdx >= 9 && lineIdx <= 13) {
-                        // ASCII 蛋糕部分，瞬间刷拉拉打印出来
                         baseDelay = 10;
                         randomFactor = 10;
                     } else if (lineIdx === 15) {
-                        // 最后的署名，庄重一点，中等偏慢
                         baseDelay = 120;
                         randomFactor = 80;
                     }
@@ -760,18 +773,81 @@
                     typeTimeout = setTimeout(() => typeLines(lineIdx, charIdx + 1), delay);
                 } else {
                     currentLine.innerHTML += '<br>';
-
-                    // 换行时的停顿时间控制
                     let lineBreakDelay = 300;
-                    if (lineIdx >= 0 && lineIdx <= 7) {
-                        // 说心里话时，换行多停顿一会儿 (1秒左右)
-                        lineBreakDelay = 1000;
-                    } else if (lineIdx >= 9 && lineIdx <= 13) {
-                        // 蛋糕行与行之间几乎不停顿
-                        lineBreakDelay = 50;
-                    }
+                    if (lineIdx >= 0 && lineIdx <= 7) lineBreakDelay = 1000;
+                    else if (lineIdx >= 9 && lineIdx <= 13) lineBreakDelay = 50;
 
                     typeTimeout = setTimeout(() => typeLines(lineIdx + 1, 0), lineBreakDelay);
+                }
+            } else {
+                isTyping = false;
+
+                // 【新增核心功能】：长时间停留不退出，触发小黑猫彩蛋
+                idleTimer = setTimeout(() => {
+                    if (document.getElementById('terminal-overlay').classList.contains('show')) {
+                        isTyping = true;
+                        typeCatLines(0, 0);
+                    }
+                }, 8000); // 停留 8 秒后触发
+            }
+        }
+
+        // --- 升级版：更精致毛茸茸的小黑猫彩蛋文字 ---
+        const catLines = [
+            "",
+            "......",
+            "怎么了，还不退出吗？",
+            "那再给你一只毛茸茸的小黑猫：",
+            "",
+            "       /\\_____/\\",
+            "      /  o   o  \\",
+            "     ( ==  ^  == )",
+            "      )         (",
+            "     (           )",
+            "    ( (  )   (  ) )",
+            "   (__(__)___(__)__)  < Meow~!"
+        ];
+
+        function typeCatLines(lineIdx, charIdx) {
+            if (!isTyping) return;
+            const contentDiv = document.getElementById('terminal-content');
+
+            if (lineIdx < catLines.length) {
+                if (charIdx === 0) {
+                    const newLine = document.createElement('span');
+                    newLine.className = 'term-line';
+                    const oldCursor = document.querySelector('.term-cursor');
+                    if (oldCursor) oldCursor.remove();
+                    contentDiv.appendChild(newLine);
+                    contentDiv.innerHTML += '<span class="term-cursor">█</span>';
+                    contentDiv.scrollTop = contentDiv.scrollHeight;
+                }
+
+                const lines = contentDiv.getElementsByClassName('term-line');
+                const currentLine = lines[lines.length - 1];
+
+                if (charIdx < catLines[lineIdx].length) {
+                    const char = catLines[lineIdx].charAt(charIdx);
+
+                    // 防止被识别为 HTML 标签
+                    let displayChar = char;
+                    if (char === '<') displayChar = '&lt;';
+                    if (char === '>') displayChar = '&gt;';
+
+                    currentLine.innerHTML += displayChar;
+
+                    // 猫咪文本的速度控制
+                    let delay = Math.random() * 40 + 60;
+                    if (lineIdx >= 5) { delay = 10; } // ASCII画的输出速度极快
+
+                    typeTimeout = setTimeout(() => typeCatLines(lineIdx, charIdx + 1), delay);
+                } else {
+                    currentLine.innerHTML += '<br>';
+                    let breakDelay = 300;
+                    if (lineIdx === 1 || lineIdx === 2) breakDelay = 1200; // 说话时停顿久一点
+                    if (lineIdx >= 5) breakDelay = 50;
+
+                    typeTimeout = setTimeout(() => typeCatLines(lineIdx + 1, 0), breakDelay);
                 }
             } else {
                 isTyping = false;
