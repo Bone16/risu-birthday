@@ -34,68 +34,59 @@
 
         /* --- 音乐律动可视化画布 --- */
         #audio-visualizer {
-            position: fixed;
-            bottom: 0; left: 0;
-            width: 100vw; height: 30vh;
-            z-index: 5;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 1s ease;
+            position: fixed; bottom: 0; left: 0; width: 100vw; height: 30vh;
+            z-index: 5; pointer-events: none; opacity: 0; transition: opacity 1s ease;
         }
         #audio-visualizer.active { opacity: 1; }
 
-        #webgl-container {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 6;
-            cursor: grab; pointer-events: auto;
-        }
+        #webgl-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 6; cursor: grab; pointer-events: auto; }
         #webgl-container:active { cursor: grabbing; }
 
         .curtain {
             position: fixed; top: 0; width: 50vw; height: 100vh; z-index: 9998;
-            background: repeating-linear-gradient(to right, transparent, rgba(92, 65, 93, 0.02) 4%, transparent 8%),
-                        linear-gradient(135deg, #FFFFFF 0%, #FFF5F5 100%);
-            transition: transform 2.8s cubic-bezier(0.65, 0, 0.15, 1);
-            box-shadow: inset 0 0 30px rgba(217, 114, 127, 0.03);
+            background: repeating-linear-gradient(to right, transparent, rgba(92, 65, 93, 0.02) 4%, transparent 8%), linear-gradient(135deg, #FFFFFF 0%, #FFF5F5 100%);
+            transition: transform 2.8s cubic-bezier(0.65, 0, 0.15, 1); box-shadow: inset 0 0 30px rgba(217, 114, 127, 0.03);
         }
         #curtain-left { left: 0; transform-origin: left; border-right: 4px solid #E0A96D; box-shadow: inset -15px 0 25px rgba(0,0,0,0.03); }
         #curtain-right { right: 0; transform-origin: right; border-left: 4px solid #E0A96D; box-shadow: inset 15px 0 25px rgba(0,0,0,0.03); }
         #curtain-left.open { transform: translateX(-100%); }
         #curtain-right.open { transform: translateX(100%); }
 
-        #loading-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: transparent; z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 1.5s ease-in-out;
-        }
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: transparent; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1.5s ease-in-out; }
         .loading-icon { width: 45px; height: 45px; fill: #D9727F; animation: pulse 1.5s infinite ease-in-out; margin-bottom: 25px; filter: drop-shadow(0 4px 10px rgba(217, 114, 127, 0.2)); }
         .loading-text { font-family: 'Jost', sans-serif; font-size: 14px; letter-spacing: 6px; color: #5C415D; text-transform: uppercase; }
         @keyframes pulse { 0%, 100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.05) translateY(-5px); } }
 
-        body::before {
-            content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAAAAABhw8h/AAAAAXRSTlMAQObVGgAAAHJJREFUOI2t08ENwCAMQ9E0yv6LxhBQRJ2g+r/E0n/Y42g1Z5zP+r1W18zM0r1Xv4HMWvWczVn11D0yZzVn1VOvH0hmreauejrmnNVZ9dTvXzJndVY9dXvOrOaseur2nFnNWfXU/wEyZ9VTv3vKnNWcVU+9fqB/9Q2f8g84g1tW1AAAAABJRU5ErkJggg==');
-            opacity: 0.02; pointer-events: none; z-index: 2;
-        }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAAAAABhw8h/AAAAAXRSTlMAQObVGgAAAHJJREFUOI2t08ENwCAMQ9E0yv6LxhBQRJ2g+r/E0n/Y42g1Z5zP+r1W18zM0r1Xv4HMWvWczVn11D0yZzVn1VOvH0hmreauejrmnNVZ9dTvXzJndVY9dXvOrOaseur2nFnNWfXU/wEyZ9VTv3vKnNWcVU+9fqB/9Q2f8g84g1tW1AAAAABJRU5ErkJggg=='); opacity: 0.02; pointer-events: none; z-index: 2; }
 
-        #intro-ui {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            pointer-events: none; transition: opacity 1.5s ease;
-        }
+        #intro-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; transition: opacity 1.5s ease; }
         .intro-hint { position: absolute; top: 15%; color: rgba(92, 65, 93, 0.7); font-family: 'Jost', sans-serif; letter-spacing: 4px; font-size: 14px; text-transform: uppercase; animation: pulseHint 2.5s infinite; }
-        #enter-btn { position: absolute; bottom: 15%; padding: 14px 38px; border-radius: 50px; background: rgba(255, 255, 255, 0.8); border: 1.5px solid #5C415D; color: #5C415D; font-family: 'Jost', sans-serif; font-weight: bold; letter-spacing: 3px; font-size: 14px; cursor: pointer; pointer-events: auto; transition: all 0.4s ease; backdrop-filter: blur(8px); opacity: 0; visibility: hidden; transform: translateY(20px); }
+
+        #enter-btn {
+            position: absolute; bottom: 15%; padding: 14px 38px; border-radius: 50px;
+            background: rgba(255, 255, 255, 0.85);
+            border: none;
+            box-shadow: 0 8px 25px rgba(217, 114, 127, 0.15);
+            color: #D9727F;
+            font-family: 'Jost', sans-serif; font-weight: bold; letter-spacing: 3px; font-size: 15px;
+            cursor: pointer; pointer-events: auto; transition: all 0.4s ease; backdrop-filter: blur(8px);
+            opacity: 0; visibility: hidden; transform: translateY(20px);
+        }
         #enter-btn.show { opacity: 1; visibility: visible; transform: translateY(0); }
-        #enter-btn:hover { background: #5C415D; color: #FFF; box-shadow: 0 8px 20px rgba(92,65,93,0.3); transform: translateY(-3px); }
+        #enter-btn:hover {
+            background: #D9727F; color: #FFF;
+            box-shadow: 0 12px 30px rgba(217, 114, 127, 0.3);
+            transform: translateY(-5px);
+        }
 
         #main-gallery-ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 10; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 1.5s ease; }
         #main-gallery-ui.show { opacity: 1; visibility: visible; }
 
         /* --- 独立音乐控制按钮 --- */
-        #music-toggle-btn { position: fixed; bottom: 40px; right: 40px; z-index: 150; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1.5px solid #D9727F; border-radius: 50px; padding: 12px 24px; color: #D9727F; font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; pointer-events: auto; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 25px rgba(217, 114, 127, 0.15); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(20px); }
+        #music-toggle-btn { position: fixed; bottom: 40px; right: 40px; z-index: 150; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: none; border-radius: 50px; padding: 12px 24px; color: #D9727F; font-family: 'Jost', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; pointer-events: auto; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 25px rgba(217, 114, 127, 0.15); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(20px); }
         #main-gallery-ui.show #music-toggle-btn { opacity: 1; transform: translateY(0); }
         #music-toggle-btn:hover { background: #FFF5F5; transform: translateY(-3px); box-shadow: 0 12px 30px rgba(217, 114, 127, 0.25); }
-        #music-toggle-btn.playing { background: #D9727F; color: #FFFFFF; border-color: #D9727F; }
+        #music-toggle-btn.playing { background: #D9727F; color: #FFFFFF; }
         .music-icon { font-size: 16px; display: inline-block; transition: transform 0.3s ease; }
         #music-toggle-btn.playing .music-icon { animation: musicSpin 3s linear infinite; }
         @keyframes musicSpin { 100% { transform: rotate(360deg); } }
@@ -103,70 +94,88 @@
         .transition-wrapper { position: absolute; width: 100%; height: 100%; pointer-events: none; transition: opacity 0.8s ease, transform 0.8s ease; }
         .hidden-wrapper { opacity: 0 !important; transform: scale(0.95); visibility: hidden !important; pointer-events: none !important; filter: blur(5px); }
 
-        .back-btn { position: fixed; top: 35px; left: 35px; display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); padding: 10px 22px; border-radius: 50px; color: #5C415D; font-size: 14px; font-weight: bold; cursor: pointer; z-index: 50; border: 1.5px solid rgba(92, 65, 93, 0.2); box-shadow: 0 4px 15px rgba(0,0,0,0.05); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }
+        .back-btn { position: fixed; top: 35px; left: 35px; display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); padding: 10px 22px; border-radius: 50px; color: #D9727F; font-size: 14px; font-weight: bold; cursor: pointer; z-index: 50; border: none; box-shadow: 0 8px 20px rgba(217, 114, 127, 0.15); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }
         .back-btn.show { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
-        .back-btn:hover { background: #5C415D; color: #FFFFFF; transform: translateY(-2px); border-color: #5C415D; }
+        .back-btn:hover { background: #D9727F; color: #FFFFFF; transform: translateY(-3px); box-shadow: 0 12px 25px rgba(217, 114, 127, 0.3); }
 
         .time-widget { position: absolute; top: 35px; right: 40px; border-bottom: 2px solid #E0A96D; padding-bottom: 8px; text-align: right; z-index: 15; pointer-events: auto; }
         .birthday-label { display: block; font-size: 16px; color: #D9727F; letter-spacing: 4px; margin-bottom: 5px; font-weight: 600; font-family: 'Jost', sans-serif; text-transform: uppercase; }
         .time-display { font-size: 46px; font-weight: 700; letter-spacing: 4px; color: #5C415D; opacity: 0.85; line-height: 1; }
         .time-blink { animation: blink 1.5s infinite ease-in-out; color: #D9727F; }
 
-        .hero-title { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; pointer-events: auto; }
-        h1 { color: #5C415D; font-size: 55px; margin: 0; letter-spacing: 4px; font-weight: 700; line-height: 1.2; }
-        h1 span { display: block; font-size: 30px; color: #D9727F; font-style: italic; font-weight: 500; margin-top: 5px;}
+        .hero-title { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; pointer-events: auto; }
 
-        .btn-group { position: absolute; top: 60%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; gap: 20px; pointer-events: auto; }
-        .action-btn { background: rgba(255, 255, 255, 0.8); border: 1.5px solid #5C415D; padding: 12px 28px; border-radius: 50px; color: #5C415D; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.4s ease; letter-spacing: 2px; backdrop-filter: blur(5px); font-family: 'Playfair Display', serif; }
-        .action-btn:hover { background: #5C415D; color: #FFFFFF; transform: translateY(-3px); }
+        h1 {
+            font-size: 85px;
+            margin: 0; letter-spacing: 6px; font-weight: 700; line-height: 1.2;
+            background: linear-gradient(45deg, #A890CE, #D9727F, #E0A96D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0px 8px 24px rgba(217, 114, 127, 0.25);
+        }
+        h1 span {
+            display: block;
+            font-size: 45px;
+            font-style: italic; font-weight: 500; margin-top: 10px;
+            background: linear-gradient(45deg, #D9727F, #E0A96D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .btn-group { position: absolute; top: 62%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; gap: 25px; pointer-events: auto; }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            box-shadow: 0 8px 25px rgba(217, 114, 127, 0.15);
+            padding: 14px 34px; border-radius: 50px;
+            color: #D9727F;
+            font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.4s ease;
+            letter-spacing: 3px; backdrop-filter: blur(5px); font-family: 'Playfair Display', serif;
+        }
+        .action-btn:hover {
+            background: #D9727F; color: #FFFFFF;
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(217, 114, 127, 0.3);
+        }
 
         /* ==========================================
-           --- 小猫与换装：修复版 ---
+           --- 小猫与动态歌词卡点装饰 ---
            ========================================== */
         .cute-cat { position: absolute; left: 50%; bottom: -15px; transform: translateX(-50%); width: 85px; height: 85px; z-index: 20; filter: drop-shadow(0px -4px 8px rgba(92, 65, 93, 0.25)); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: auto; cursor: pointer; }
         .cute-cat:hover { transform: translate(-50%, -25px) rotate(3deg); }
         .cat-body { fill: #2A212A; }
 
-        /* 恢复小猫眨眼动画 */
-        .cat-eye {
-            position: absolute; top: 38px; left: 26px; width: 5px; height: 5px;
-            background: #FFD166; border-radius: 50%;
-            box-shadow: 0 0 6px #FFD166; z-index: 2;
-            transform-origin: center;
-            animation: wink 4s infinite; /* 眨眼动画绑定 */
-        }
+        /* 猫咪绿色眼睛 */
+        .cat-eye { position: absolute; top: 38px; left: 26px; width: 5px; height: 5px; background: #2ed573; border-radius: 50%; box-shadow: 0 0 8px #2ed573; z-index: 2; transform-origin: center; animation: wink 4s infinite; }
         .cat-eye.right { left: auto; right: 26px; }
+        @keyframes wink { 0%, 96%, 100% { transform: scaleY(1); } 98% { transform: scaleY(0.1); } }
 
-        @keyframes wink {
-            0%, 96%, 100% { transform: scaleY(1); }
-            98% { transform: scaleY(0.1); }
-        }
+        @keyframes catJumpAnim { 0%, 100% { bottom: -15px; } 50% { bottom: 20px; } }
+        .cute-cat.is-jumping { animation: catJumpAnim 0.6s ease-in-out infinite; }
 
-        /* 礼帽 (修复悬浮：调整 top 和 translateY 让其贴合头部凹陷) */
-        .cat-hat {
-            position: absolute;
-            top: -12px; /* 调整起始位置，抵消SVG内空白 */
-            left: 50%; width: 45px; height: 45px;
-            transform: translateX(-50%) translateY(-40px) scale(0) rotate(15deg);
-            opacity: 0; z-index: 3;
-            /* 使用柔和的弹性曲线 */
-            transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+        .cat-dec { opacity: 0; z-index: 3; transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
-        /* 领结 */
-        .cat-bowtie {
-            position: absolute; top: 60px; left: 50%; width: 35px; height: 20px;
-            transform: translateX(-50%) scale(0);
-            opacity: 0; z-index: 3;
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s; /* 延迟出现 */
-        }
+        .cat-gift { position: absolute; right: -40px; bottom: -5px; width: 45px; height: 50px; transform: scale(0) translateY(10px); }
+        .cute-cat.show-gift .cat-gift { animation: dropAndSettle 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 
-        /* 换装激活状态 */
-        .cute-cat.dress-code .cat-hat {
-            transform: translateX(-50%) translateY(0) scale(1) rotate(-5deg); /* 落到实处 */
-            opacity: 1;
-        }
+        .cat-hat { position: absolute; top: -5px; left: 50%; width: 45px; height: 45px; transform: translateX(-50%) translateY(-40px) scale(0) rotate(15deg); }
+        .cat-bowtie { position: absolute; top: 60px; left: 50%; width: 35px; height: 20px; transform: translateX(-50%) scale(0); transition-delay: 0.2s; }
+        .cute-cat.dress-code .cat-hat { transform: translateX(-50%) translateY(0) scale(1) rotate(-5deg); opacity: 1; }
         .cute-cat.dress-code .cat-bowtie { transform: translateX(-50%) scale(1); opacity: 1; }
+
+        .cat-cake-dec { position: absolute; left: -50px; bottom: -5px; width: 50px; height: 55px; transform: scale(0) translateY(20px); }
+        .cute-cat.show-cake .cat-cake-dec { animation: dropAndSettle 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+        @keyframes dropAndSettle {
+            0% { transform: scale(0) translateY(-30px); opacity: 0; }
+            50% { transform: scale(1.3) translateY(-10px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
 
         /* ==========================================
            --- 装饰与点缀 ---
@@ -184,7 +193,10 @@
 
         .cute-deco { position: absolute; z-index: 25; opacity: 0.8; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1)); pointer-events: auto; cursor: pointer; transition: filter 0.3s ease; }
         .cute-deco:hover { filter: drop-shadow(0 0 12px rgba(217, 114, 127, 0.7)) brightness(1.1); }
-        .deco-envelope { top: 15%; right: 12%; width: 45px; fill: #E0A96D; }
+
+        /* 礼花筒 */
+        .deco-popper { top: 15%; right: 12%; width: 45px; fill: #E0A96D; }
+
         .deco-plane { top: 20%; left: 15%; width: 50px; fill: #A890CE; opacity: 0.6;}
         .deco-star { top: 60%; right: 18%; width: 25px; fill: #D9727F; }
         .deco-moon { bottom: 25%; left: 10%; width: 35px; fill: #E0A96D; opacity: 0.5;}
@@ -195,8 +207,10 @@
         .float-wrap.delay > svg { animation: floatSlow 7s ease-in-out infinite 1s; }
         @keyframes floatSlow { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-15px) rotate(5deg); } }
 
-        @keyframes envelopeFlip { 0% { transform: perspective(400px) rotateY(0deg) scale(1); filter: brightness(1); } 50% { transform: perspective(400px) rotateY(180deg) scale(1.3); filter: brightness(1.2); } 100% { transform: perspective(400px) rotateY(360deg) scale(1); filter: brightness(1); } }
-        .anim-envelope { animation: envelopeFlip 0.8s ease-out forwards !important; }
+        /* 礼花筒动画 */
+        @keyframes popperPop { 0% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.3) rotate(-15deg); filter: brightness(1.2); } 100% { transform: scale(1) rotate(0deg); } }
+        .anim-popper { animation: popperPop 0.6s ease-out forwards !important; }
+
         @keyframes planeFly { 0% { transform: translate(0, 0) scale(1) rotate(-5deg); opacity: 0.6; } 40% { transform: translate(80vw, -60vh) scale(0.8) rotate(20deg); opacity: 0; } 41% { transform: translate(-50vw, 40vh) scale(0.5) rotate(-20deg); opacity: 0; } 100% { transform: translate(0, 0) scale(1) rotate(-5deg); opacity: 0.6; } }
         .anim-plane { animation: planeFly 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards !important; }
         @keyframes starTwinkle { 0% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.6) rotate(180deg); filter: drop-shadow(0 0 15px #D9727F) brightness(1.5); } 100% { transform: scale(1) rotate(360deg); } }
@@ -208,17 +222,23 @@
         #swipeHint.show-hint { opacity: 0.8; visibility: visible; animation: pulseHint 2s infinite; }
         @keyframes pulseHint { 0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.5; } 50% { transform: translateX(-50%) scale(1.05); opacity: 0.9; } }
 
+        /* --- 极客终端样式 --- */
         #terminal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.96); backdrop-filter: blur(10px); z-index: 100000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.4s ease; pointer-events: none; }
         #terminal-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
-        #terminal-content { width: 90vw; max-width: 800px; height: 80vh; overflow-y: auto; font-family: 'Courier New', Courier, monospace; color: #00FF41; font-size: 15px; line-height: 1.8; text-shadow: 0 0 5px rgba(0, 255, 65, 0.5); white-space: pre-wrap; padding: 20px; box-sizing: border-box; border: 1px solid rgba(0, 255, 65, 0.3); border-radius: 8px; background: rgba(0, 0, 0, 0.5); }
+        #terminal-content { width: 90vw; max-width: 800px; height: 80vh; overflow-y: auto; font-family: 'Courier New', Courier, monospace; color: #00FF41; font-size: 15px; line-height: 1.8; text-shadow: 0 0 5px rgba(0, 255, 65, 0.5); padding: 20px; box-sizing: border-box; border: 1px solid rgba(0, 255, 65, 0.3); border-radius: 8px; background: rgba(0, 0, 0, 0.5); white-space: pre-wrap; }
         #terminal-content::-webkit-scrollbar { width: 8px; } #terminal-content::-webkit-scrollbar-track { background: rgba(0, 255, 65, 0.05); border-radius: 4px; } #terminal-content::-webkit-scrollbar-thumb { background: rgba(0, 255, 65, 0.3); border-radius: 4px; } #terminal-content::-webkit-scrollbar-thumb:hover { background: rgba(0, 255, 65, 0.6); }
+
         .term-cursor { display: inline-block; width: 10px; height: 18px; background-color: #00FF41; animation: blinkTerm 1s step-end infinite; vertical-align: bottom; margin-left: 2px; }
         .term-hint { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: rgba(0, 255, 65, 0.5); font-family: 'Courier New', Courier, monospace; font-size: 12px; pointer-events: none; letter-spacing: 1px; }
         @keyframes blinkTerm { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
+        /* ASCII 动画容器专用样式 */
+        .ascii-container { text-align: center; margin-top: 20px; width: 100%; display: flex; justify-content: center;}
+        .ascii-art { font-family: 'Courier New', monospace; line-height: 1.15; display: inline-block; text-align: left; color: #00FF41; text-shadow: 0 0 8px rgba(0,255,65,0.4); white-space: pre;}
+
         @media (max-width: 600px) {
-            h1 { font-size: 38px; } h1 span { font-size: 20px; } .hero-title { top: 38%; }
-            .btn-group { top: 55%; flex-direction: column; width: 70%; gap: 15px;}
+            h1 { font-size: 50px; } h1 span { font-size: 30px; } .hero-title { top: 35%; }
+            .btn-group { top: 58%; flex-direction: column; width: 70%; gap: 15px;}
             .time-widget { top: 25px; right: 25px; } .time-display { font-size: 36px; } .birthday-label { font-size: 13px; letter-spacing: 2px;}
             .cute-cat { width: 75px; height: 75px; bottom: -10px; } .cat-eye { top: 34px; left: 22px; width: 4.5px; height: 4.5px; } .cat-eye.right { right: 22px; }
             .cute-deco { opacity: 0.5; } #swipeHint { bottom: 200px; } .letter-paper { padding: 30px; }
@@ -227,6 +247,7 @@
             .intro-hint { top: 25%; font-size: 12px; }
             #terminal-content { font-size: 12px; }
             #music-toggle-btn { bottom: 20px; right: 20px; padding: 10px 18px; font-size: 12px; }
+            .ascii-art { font-size: 10px; line-height: 1.1;}
         }
     </style>
 </head>
@@ -263,7 +284,7 @@
             返回主页
         </div>
 
-        <div class="float-wrap"><svg class="cute-deco deco-envelope" viewBox="0 0 24 24"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"/></svg></div>
+        <div class="float-wrap"><svg class="cute-deco deco-popper" viewBox="0 0 24 24"><path d="M14.6 7.4L12 4.8 13.4 3.4 16 6 14.6 7.4ZM18.2 11L19.6 9.6 17 7 15.6 8.4 18.2 11ZM9.4 12.6L6.8 10 5.4 11.4 8 14 9.4 12.6ZM22 3.4L20.6 2 17 5.6 18.4 7 22 3.4ZM2.8 22.8L11.2 14.4 9.6 12.8 1.2 21.2C.8 21.6.8 22.2 1.2 22.6 1.6 23 2.2 23 2.8 22.8ZM16 14C16 14 19 12 21 12C21 14 19 17 19 17L16 14Z" /></svg></div>
         <div class="float-wrap reverse"><svg class="cute-deco deco-plane" viewBox="0 0 24 24"><path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z"/></svg></div>
         <div class="float-wrap delay"><svg class="cute-deco deco-star" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z"/></svg></div>
         <div class="float-wrap"><svg class="cute-deco deco-moon" viewBox="0 0 24 24"><path d="M12 2a9.93 9.93 0 0 0-3.97.83 7.82 7.82 0 0 1 0 16.34A9.93 9.93 0 0 0 12 22a10 10 0 0 0 0-20z"/></svg></div>
@@ -291,11 +312,25 @@
             </svg>
             <div class="cat-eye"></div><div class="cat-eye right"></div>
 
-            <div class="cat-hat">
-                <svg viewBox="0 0 100 100"><path fill="#5C415D" d="M10,80 L90,80 L90,65 L75,65 L75,20 C75,15 70,10 65,10 L35,10 C30,10 25,15 25,20 L25,65 L10,65 Z"/><rect x="25" y="50" width="50" height="15" fill="#D9727F"/></svg>
+            <div class="cat-dec cat-gift">
+                <svg viewBox="0 0 100 100">
+                    <rect x="20" y="40" width="60" height="50" fill="#A890CE" rx="3"/>
+                    <rect x="45" y="40" width="10" height="50" fill="#FFD166"/>
+                    <rect x="20" y="60" width="60" height="10" fill="#FFD166"/>
+                    <path d="M50,40 C35,20 15,30 45,40 Z" fill="#FFD166"/><path d="M50,40 C65,20 85,30 55,40 Z" fill="#FFD166"/>
+                </svg>
             </div>
-            <div class="cat-bowtie">
-                <svg viewBox="0 0 100 50"><path fill="#D9727F" d="M10,10 L45,25 L10,40 C5,35 5,15 10,10 Z M90,10 L55,25 L90,40 C95,35 95,15 90,10 Z"/><circle cx="50" cy="25" r="10" fill="#E0A96D"/></svg>
+
+            <div class="cat-dec cat-hat"><svg viewBox="0 0 100 100"><path fill="#5C415D" d="M10,80 L90,80 L90,65 L75,65 L75,20 C75,15 70,10 65,10 L35,10 C30,10 25,15 25,20 L25,65 L10,65 Z"/><rect x="25" y="50" width="50" height="15" fill="#D9727F"/></svg></div>
+            <div class="cat-dec cat-bowtie"><svg viewBox="0 0 100 50"><path fill="#D9727F" d="M10,10 L45,25 L10,40 C5,35 5,15 10,10 Z M90,10 L55,25 L90,40 C95,35 95,15 90,10 Z"/><circle cx="50" cy="25" r="10" fill="#E0A96D"/></svg></div>
+
+            <div class="cat-dec cat-cake-dec">
+                <svg viewBox="0 0 100 100">
+                    <rect x="20" y="55" width="60" height="35" fill="#FFF5F5" rx="5"/>
+                    <path d="M20,65 Q35,75 50,65 T80,65 L80,90 L20,90 Z" fill="#D9727F"/>
+                    <rect x="45" y="25" width="10" height="30" fill="#FFD166" rx="2"/>
+                    <path d="M50,10 Q55,20 50,25 Q45,20 50,10 Z" fill="#FF5722"/>
+                </svg>
             </div>
         </div>
 
@@ -381,21 +416,42 @@
         });
 
         // =======================================================
-        // 小猫精准卡点换装逻辑
+        // 🌟 小猫动态歌词卡点逻辑
         // =======================================================
         const catElement = document.querySelector('.cute-cat');
-        let catHasDressCode = false;
 
-        // ⚠️ 重要：在这里修改小猫带帽子的精确秒数 ⚠️
-        const DRESS_CODE_TIME = 23.5;
+        const LYRICS_TIMING = {
+            present: 26.0,
+            dress: 35.0,
+            jump1: 91.0,
+            cake: 122.0,
+            jump2: 249.0
+        };
+
+        let catFlags = {
+            present: false, dress: false,
+            jump1: false, cake: false, jump2: false
+        };
 
         bgMusic.addEventListener('timeupdate', () => {
-            if (bgMusic.currentTime >= DRESS_CODE_TIME && !catHasDressCode) {
-                catElement.classList.add('dress-code');
-                catHasDressCode = true;
-            } else if (bgMusic.currentTime < DRESS_CODE_TIME && catHasDressCode) {
-                catElement.classList.remove('dress-code');
-                catHasDressCode = false;
+            const t = bgMusic.currentTime;
+
+            if (t >= LYRICS_TIMING.present && !catFlags.present) { catElement.classList.add('show-gift'); catFlags.present = true; }
+            if (t >= LYRICS_TIMING.dress && !catFlags.dress) { catElement.classList.add('dress-code'); catFlags.dress = true; }
+            if (t >= LYRICS_TIMING.cake && !catFlags.cake) { catElement.classList.add('show-cake'); catFlags.cake = true; }
+
+            if (t >= LYRICS_TIMING.jump1 && t < LYRICS_TIMING.jump1 + 3.0 && !catFlags.jump1) {
+                catElement.classList.add('is-jumping'); catFlags.jump1 = true;
+                setTimeout(() => { catElement.classList.remove('is-jumping'); }, 2500);
+            }
+            if (t >= LYRICS_TIMING.jump2 && t < LYRICS_TIMING.jump2 + 3.0 && !catFlags.jump2) {
+                catElement.classList.add('is-jumping'); catFlags.jump2 = true;
+                setTimeout(() => { catElement.classList.remove('is-jumping'); }, 2500);
+            }
+
+            if (t < 5.0) {
+                catElement.className = "cute-cat";
+                for(let key in catFlags) catFlags[key] = false;
             }
         });
 
@@ -530,11 +586,25 @@
         }
 
         let mainState = 'CLOSED'; let activePhoto = null; let originalLocalPos = null; let originalLocalRot = null;
+
         document.getElementById('backBtn').addEventListener('click', (e) => { e.stopPropagation(); transitionToClosed(); });
         document.getElementById('scatterBtn').addEventListener('click', () => { transitionToCarousel(); });
 
-        function transitionToClosed() { mainState = 'CLOSED'; document.getElementById('cardWrapper').classList.remove('hidden-wrapper'); document.getElementById('swipeHint').classList.remove('show-hint'); document.getElementById('backBtn').classList.remove('show'); photos.forEach((mesh, i) => { new TWEEN.Tween(mesh.position).to({ x: closedPositions[i].x, y: closedPositions[i].y, z: closedPositions[i].z }, 1800).easing(TWEEN.Easing.Exponential.Out).start(); new TWEEN.Tween(mesh.rotation).to({ x: closedPositions[i].rx, y: closedPositions[i].ry, z: closedPositions[i].rz }, 1800).easing(TWEEN.Easing.Exponential.Out).start(); }); }
-        function transitionToCarousel() { mainState = 'CAROUSEL'; document.getElementById('cardWrapper').classList.add('hidden-wrapper'); document.getElementById('swipeHint').classList.add('show-hint'); document.getElementById('backBtn').classList.add('show'); photos.forEach((mesh, i) => { new TWEEN.Tween(mesh.position).to({ x: carouselPositions[i].x, y: carouselPositions[i].y, z: carouselPositions[i].z }, 2500).easing(TWEEN.Easing.Cubic.Out).start(); new TWEEN.Tween(mesh.rotation).to({ x: carouselPositions[i].rx, y: carouselPositions[i].ry, z: carouselPositions[i].rz }, 2500).easing(TWEEN.Easing.Cubic.Out).start(); }); }
+        function transitionToClosed() {
+            mainState = 'CLOSED';
+            document.getElementById('cardWrapper').classList.remove('hidden-wrapper');
+            document.getElementById('swipeHint').classList.remove('show-hint');
+            document.getElementById('backBtn').classList.remove('show');
+            photos.forEach((mesh, i) => { new TWEEN.Tween(mesh.position).to({ x: closedPositions[i].x, y: closedPositions[i].y, z: closedPositions[i].z }, 1800).easing(TWEEN.Easing.Exponential.Out).start(); new TWEEN.Tween(mesh.rotation).to({ x: closedPositions[i].rx, y: closedPositions[i].ry, z: closedPositions[i].rz }, 1800).easing(TWEEN.Easing.Exponential.Out).start(); });
+        }
+
+        function transitionToCarousel() {
+            mainState = 'CAROUSEL';
+            document.getElementById('cardWrapper').classList.add('hidden-wrapper');
+            document.getElementById('swipeHint').classList.add('show-hint');
+            document.getElementById('backBtn').classList.add('show');
+            photos.forEach((mesh, i) => { new TWEEN.Tween(mesh.position).to({ x: carouselPositions[i].x, y: carouselPositions[i].y, z: carouselPositions[i].z }, 2500).easing(TWEEN.Easing.Cubic.Out).start(); new TWEEN.Tween(mesh.rotation).to({ x: carouselPositions[i].rx, y: carouselPositions[i].ry, z: carouselPositions[i].rz }, 2500).easing(TWEEN.Easing.Cubic.Out).start(); });
+        }
 
         const raycasterMain = new THREE.Raycaster(); const pointerMain = new THREE.Vector2();
         let isDragging = false; let hasDragged = false; let previousMouseX = 0; let pointerDownPos = { x: 0, y: 0 }; let targetGalleryRotation = 0;
@@ -553,7 +623,7 @@
         document.getElementById('cat-trigger').addEventListener('click', () => { document.getElementById('secret-letter-overlay').classList.add('show'); });
         document.getElementById('close-letter').addEventListener('click', () => { document.getElementById('secret-letter-overlay').classList.remove('show'); });
 
-        const decos = [ { selector: '.deco-plane', animClass: 'anim-plane' }, { selector: '.deco-envelope', animClass: 'anim-envelope', hasConfetti: true }, { selector: '.deco-star', animClass: 'anim-star' }, { selector: '.deco-moon', animClass: 'anim-moon' } ];
+        const decos = [ { selector: '.deco-plane', animClass: 'anim-plane' }, { selector: '.deco-popper', animClass: 'anim-popper', hasConfetti: true }, { selector: '.deco-star', animClass: 'anim-star' }, { selector: '.deco-moon', animClass: 'anim-moon' } ];
         decos.forEach(item => { const el = document.querySelector(item.selector); if (!el) return; el.addEventListener('click', () => { if (el.classList.contains(item.animClass)) return; el.classList.add(item.animClass); if (item.hasConfetti) confetti({ particleCount: 20, spread: 50, origin: { x: (el.getBoundingClientRect().left + 22) / window.innerWidth, y: (el.getBoundingClientRect().top + 22) / window.innerHeight }, colors: ['#E0A96D', '#D9727F', '#A890CE'], zIndex: 100 }); el.addEventListener('animationend', () => { el.classList.remove(item.animClass); }, { once: true }); }); });
 
         const uploadBtn = document.getElementById('uploadBtn'); const uploadInput = document.getElementById('uploadInput'); const texLoader = new THREE.TextureLoader(); let pIdx = 0; let pTotal = 0;
@@ -563,21 +633,161 @@
         function fireMainConfetti() { const isMobile = window.innerWidth < 600; const count = isMobile ? 6 : 12; const duration = 4000; const end = Date.now() + duration; (function frame() { const colors = ['#D9727F', '#A890CE', '#FFFFFF', '#E0A96D', '#FFD166']; confetti({ particleCount: count, angle: 60, spread: 80, origin: { x: 0, y: 0.8 }, colors: colors, zIndex: 100 }); confetti({ particleCount: count, angle: 120, spread: 80, origin: { x: 1, y: 0.8 }, colors: colors, zIndex: 100 }); if (Math.random() > 0.5) confetti({ particleCount: count/2, angle: 270, spread: 100, origin: { x: 0.5, y: -0.1 }, colors: colors, zIndex: 100, gravity: 0.8, startVelocity: 15 }); if (Date.now() < end) requestAnimationFrame(frame); }()); }
 
         // =======================================================
-        // 程序员的浪漫终端
+        // 🌟 核心升级：带有语速控制的 Hacker 解密终端 🌟
         // =======================================================
-        let clickCount = 0; let clickTimer; let keyBuffer = ''; let isTyping = false; let typeTimeout; let idleTimer;
-        const terminalLines = [ "Risu,", "这是给你的生日蛋糕，", "当然是吃不了的", "不过希望你开心", "蛋糕加载中......", "加载中......", "......", "骗你的其实不需要加载", "", "       ,,,,,       ", "      _|||||_      ", "     {~*~*~*~}     ", "   __{*~*~*~*}__   ", "  `-------------`  ", "", "> Happy Birthday, Risu. Love, sw." ];
+        let clickCount = 0; let clickTimer; let keyBuffer = '';
+        let isTermActive = false; let isTyping = false; let termAnimInterval = null;
+        const termOverlay = document.getElementById('terminal-overlay');
+        const termContent = document.getElementById('terminal-content');
 
         window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { hideTerminal(); return; } if (e.key.length === 1) { keyBuffer += e.key.toLowerCase(); if (keyBuffer.length > 10) keyBuffer = keyBuffer.slice(-10); if (keyBuffer.endsWith('risu')) { showTerminal(); keyBuffer = ''; } } });
-        window.addEventListener('click', (e) => { if (document.getElementById('terminal-overlay').classList.contains('show')) return; clickCount++; clearTimeout(clickTimer); clickTimer = setTimeout(() => { clickCount = 0; }, 1000); if (clickCount >= 16) { showTerminal(); clickCount = 0; } });
-        let termClickTimer = 0; document.getElementById('terminal-overlay').addEventListener('click', () => { const now = new Date().getTime(); if (now - termClickTimer < 400) { hideTerminal(); } termClickTimer = now; });
+        window.addEventListener('click', (e) => { if (termOverlay.classList.contains('show')) return; clickCount++; clearTimeout(clickTimer); clickTimer = setTimeout(() => { clickCount = 0; }, 1000); if (clickCount >= 16) { showTerminal(); clickCount = 0; } });
+        let termClickTimer = 0; termOverlay.addEventListener('click', () => { const now = new Date().getTime(); if (now - termClickTimer < 400) { hideTerminal(); } termClickTimer = now; });
 
-        function showTerminal() { const overlay = document.getElementById('terminal-overlay'); if (overlay.classList.contains('show')) return; overlay.classList.add('show'); document.getElementById('terminal-content').innerHTML = ''; isTyping = true; clearTimeout(idleTimer); typeLines(0, 0); }
-        function hideTerminal() { const overlay = document.getElementById('terminal-overlay'); overlay.classList.remove('show'); isTyping = false; clearTimeout(typeTimeout); clearTimeout(idleTimer); }
-        function typeLines(lineIdx, charIdx) { if (!isTyping) return; const contentDiv = document.getElementById('terminal-content'); if (lineIdx < terminalLines.length) { if (charIdx === 0) { const newLine = document.createElement('span'); newLine.className = 'term-line'; const oldCursor = document.querySelector('.term-cursor'); if (oldCursor) oldCursor.remove(); contentDiv.appendChild(newLine); contentDiv.innerHTML += '<span class="term-cursor">█</span>'; contentDiv.scrollTop = contentDiv.scrollHeight; } const lines = contentDiv.getElementsByClassName('term-line'); const currentLine = lines[lines.length - 1]; if (charIdx < terminalLines[lineIdx].length) { const char = terminalLines[lineIdx].charAt(charIdx); currentLine.innerHTML += char; let baseDelay = 40; let randomFactor = 30; if (lineIdx >= 0 && lineIdx <= 7) { baseDelay = 180; randomFactor = 150; if (char === '，' || char === ',' || char === '.' || char === '。') baseDelay += 300; } else if (lineIdx >= 9 && lineIdx <= 13) { baseDelay = 10; randomFactor = 10; } else if (lineIdx === 15) { baseDelay = 120; randomFactor = 80; } const delay = Math.random() * randomFactor + baseDelay; typeTimeout = setTimeout(() => typeLines(lineIdx, charIdx + 1), delay); } else { currentLine.innerHTML += '<br>'; let lineBreakDelay = 300; if (lineIdx >= 0 && lineIdx <= 7) lineBreakDelay = 1000; else if (lineIdx >= 9 && lineIdx <= 13) lineBreakDelay = 50; typeTimeout = setTimeout(() => typeLines(lineIdx + 1, 0), lineBreakDelay); } } else { isTyping = false; idleTimer = setTimeout(() => { if (document.getElementById('terminal-overlay').classList.contains('show')) { isTyping = true; typeCatLines(0, 0); } }, 8000); } }
+        function showTerminal() {
+            if (isTermActive) return;
+            isTermActive = true;
+            termOverlay.classList.add('show');
+            termContent.innerHTML = '';
+            runFancyTerminalSequence();
+        }
 
-        const catLines = [ "", "......", "怎么了，还不退出吗？", "那再给你一只毛茸茸的小黑猫：", "", "       /\\_____/\\", "      /  o   o  \\", "     ( ==  ^  == )", "      )         (", "     (           )", "    ( (  )   (  ) )", "   (__(__)___(__)__)  < Meow~!" ];
-        function typeCatLines(lineIdx, charIdx) { if (!isTyping) return; const contentDiv = document.getElementById('terminal-content'); if (lineIdx < catLines.length) { if (charIdx === 0) { const newLine = document.createElement('span'); newLine.className = 'term-line'; const oldCursor = document.querySelector('.term-cursor'); if (oldCursor) oldCursor.remove(); contentDiv.appendChild(newLine); contentDiv.innerHTML += '<span class="term-cursor">█</span>'; contentDiv.scrollTop = contentDiv.scrollHeight; } const lines = contentDiv.getElementsByClassName('term-line'); const currentLine = lines[lines.length - 1]; if (charIdx < catLines[lineIdx].length) { const char = catLines[lineIdx].charAt(charIdx); let displayChar = char; if (char === '<') displayChar = '&lt;'; if (char === '>') displayChar = '&gt;'; currentLine.innerHTML += displayChar; let delay = Math.random() * 40 + 60; if (lineIdx >= 5) delay = 10; typeTimeout = setTimeout(() => typeCatLines(lineIdx, charIdx + 1), delay); } else { currentLine.innerHTML += '<br>'; let breakDelay = 300; if (lineIdx === 1 || lineIdx === 2) breakDelay = 1200; if (lineIdx >= 5) breakDelay = 50; typeTimeout = setTimeout(() => typeCatLines(lineIdx + 1, 0), breakDelay); } } else { isTyping = false; } }
+        function hideTerminal() {
+            isTermActive = false;
+            isTyping = false;
+            termOverlay.classList.remove('show');
+            termContent.innerHTML = '';
+            if (termAnimInterval) clearInterval(termAnimInterval);
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        // 支持控制打字速度和乱码强度的打印函数
+        async function printLine(text, options = {}) {
+            const { glitch = 2, glitchSpeed = 15, typeDelay = 40 } = options;
+            const lineEl = document.createElement('div');
+            lineEl.className = 'term-line';
+            termContent.appendChild(lineEl);
+
+            const chars = text.split('');
+            let currentStr = new Array(chars.length).fill('');
+            const symbols = '!<>-_\\\\/[]{}—=+*^?#_';
+
+            for (let i = 0; i < chars.length; i++) {
+                if(!isTermActive) return;
+
+                // 乱码特效 (跳过空格)
+                if (glitch > 0 && chars[i] !== ' ') {
+                    for(let j = 0; j < glitch; j++) {
+                        currentStr[i] = symbols[Math.floor(Math.random() * symbols.length)];
+                        lineEl.innerText = currentStr.join('') + '█';
+                        await sleep(glitchSpeed);
+                    }
+                }
+
+                // 敲定真实字符
+                currentStr[i] = chars[i];
+                lineEl.innerText = currentStr.join('') + '█';
+
+                // 停顿延迟 (标点符号额外加点时间，模拟真实打字感)
+                let actualDelay = typeDelay;
+                if (chars[i] === '.' || chars[i] === '。' || chars[i] === '，' || chars[i] === ',') {
+                    actualDelay += 100;
+                }
+
+                if (actualDelay > 0) await sleep(actualDelay);
+                termContent.scrollTop = termContent.scrollHeight;
+            }
+            lineEl.innerText = currentStr.join(''); // 移除最后的光标
+        }
+
+        function renderAnimatedAscii() {
+            const container = document.createElement('div');
+            container.className = 'ascii-container';
+            termContent.appendChild(container);
+
+            let frame = 0;
+            termAnimInterval = setInterval(() => {
+                if(!isTermActive) return;
+                frame++;
+
+                const f1 = frame % 2 === 0 ? "( )" : " )(";
+                const f2 = frame % 2 === 0 ? " )(" : "( )";
+                const eye = frame % 20 === 0 ? "-" : "o";
+                const star1 = frame % 2 === 0 ? "#FFD166" : "#A890CE";
+                const star2 = frame % 2 === 0 ? "#A890CE" : "#FFD166";
+
+                container.innerHTML = `
+<div class="ascii-art">
+   <span style="color:#FF5722; text-shadow: 0 0 10px #FF5722;"> ${f1} </span>      <span style="color:#FF5722; text-shadow: 0 0 10px #FF5722;"> ${f2} </span>      <span style="color:#FF5722; text-shadow: 0 0 10px #FF5722;"> ${f1} </span>
+    <span style="color:#FFF;">|</span>          <span style="color:#FFF;">|</span>          <span style="color:#FFF;">|</span>
+ ___<span style="color:#FFF;">|</span>__________<span style="color:#FFF;">|</span>__________<span style="color:#FFF;">|</span>___
+<span style="color:#D9727F;">|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|</span>
+|  <span style="color:${star1};">*</span>    <span style="color:${star2};">*</span>    <span style="color:${star1};">*</span>    <span style="color:${star2};">*</span>    <span style="color:${star1};">*</span>    <span style="color:${star2};">*</span> |
+|                             |
+| <span style="color:#FFF; font-weight:bold;">H A P P Y   B I R T H D A Y</span> |
+|          <span style="color:#FFF; font-weight:bold;">R I S U !</span>          |
+|                             |
+|  <span style="color:${star2};">*</span>    <span style="color:${star1};">*</span>    <span style="color:${star2};">*</span>    <span style="color:${star1};">*</span>    <span style="color:${star2};">*</span>    <span style="color:${star1};">*</span> |
+<span style="color:#D9727F;">|~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|</span>
+<span style="color:#E0A96D;">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+         /\\_______/\\
+        /   <span style="color:#2ed573;">${eye}</span>   <span style="color:#2ed573;">${eye}</span>   \\
+       (  ==  ^  ==  )
+        )           (
+       (             )
+      ( (  )   (  ) )
+     (__(__)___(__)__)  <span style="color:#D9727F;">&lt; 喵~</span>
+</div>`;
+            }, 100);
+        }
+
+        // 串联带有情绪节奏的终端动画
+        async function runFancyTerminalSequence() {
+            isTyping = true;
+
+            if(!isTermActive) return;
+            await printLine("Risu,", { glitch: 2, typeDelay: 80 }); // 郑重，稍慢
+            await sleep(800);
+
+            if(!isTermActive) return;
+            await printLine("祝你生日快乐", { glitch: 2, typeDelay: 60 });
+            await sleep(600);
+
+            if(!isTermActive) return;
+            await printLine("这是给你的生日蛋糕", { glitch: 2, typeDelay: 50 });
+            await sleep(600);
+
+            if(!isTermActive) return;
+            await printLine("当然是吃不了的", { glitch: 2, typeDelay: 40 });
+            await sleep(600);
+
+            if(!isTermActive) return;
+            await printLine("不过希望你开心", { glitch: 2, typeDelay: 60 });
+            await sleep(1000);
+
+            if(!isTermActive) return;
+            await printLine("蛋糕加载中......", { glitch: 2, typeDelay: 150 }); // 开始变慢，假装卡顿
+
+            if(!isTermActive) return;
+            await sleep(1000);
+            await printLine("加载中......", { glitch: 1, typeDelay: 250 }); // 越来越慢
+
+            if(!isTermActive) return;
+            await sleep(1200);
+            await printLine("......", { glitch: 1, typeDelay: 400 }); // 极其折磨人的慢
+
+            if(!isTermActive) return;
+            await sleep(600);
+            await printLine("骗你的其实根本不需要加载 =w=", { glitch: 0, typeDelay: 15 }); // 突然超高速打完！
+
+            if(!isTermActive) return;
+            await sleep(1000);
+
+            termContent.innerHTML = '';
+            renderAnimatedAscii();
+            isTyping = false;
+        }
 
         // =======================================================
         // 核心渲染循环
