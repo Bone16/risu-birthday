@@ -47,8 +47,8 @@
             background: repeating-linear-gradient(to right, transparent, rgba(92, 65, 93, 0.02) 4%, transparent 8%), linear-gradient(135deg, #FFFFFF 0%, #FFF5F5 100%);
             transition: transform 2.8s cubic-bezier(0.65, 0, 0.15, 1); box-shadow: inset 0 0 30px rgba(217, 114, 127, 0.03);
         }
-        #curtain-left { left: 0; transform-origin: left; border-right: 4px solid #E0A96D; box-shadow: inset -15px 0 25px rgba(0,0,0,0.03); }
-        #curtain-right { right: 0; transform-origin: right; border-left: 4px solid #E0A96D; box-shadow: inset 15px 0 25px rgba(0,0,0,0.03); }
+        #curtain-left { left: 0; transform-origin: left; box-shadow: inset -15px 0 25px rgba(0,0,0,0.03); }
+        #curtain-right { right: 0; transform-origin: right; box-shadow: inset 15px 0 25px rgba(0,0,0,0.03); }
         #curtain-left.open { transform: translateX(-100%); }
         #curtain-right.open { transform: translateX(100%); }
 
@@ -98,9 +98,19 @@
         .back-btn.show { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
         .back-btn:hover { background: #D9727F; color: #FFFFFF; transform: translateY(-3px); box-shadow: 0 12px 25px rgba(217, 114, 127, 0.3); }
 
-        .time-widget { position: absolute; top: 35px; right: 40px; border-bottom: 2px solid #E0A96D; padding-bottom: 8px; text-align: right; z-index: 15; pointer-events: auto; }
-        .birthday-label { display: block; font-size: 16px; color: #D9727F; letter-spacing: 4px; margin-bottom: 5px; font-weight: 600; font-family: 'Jost', sans-serif; text-transform: uppercase; }
-        .time-display { font-size: 46px; font-weight: 700; letter-spacing: 4px; color: #5C415D; opacity: 0.85; line-height: 1; }
+        /* ==========================================
+           --- 全新分行时钟挂件样式 ---
+           ========================================== */
+        .time-widget {
+            position: absolute; top: 35px; right: 40px;
+            border-bottom: 2px solid #E0A96D; padding-bottom: 15px;
+            text-align: right; z-index: 15; pointer-events: auto;
+        }
+        .time-line { font-family: 'Jost', sans-serif; font-size: 15px; color: rgba(92, 65, 93, 0.7); letter-spacing: 2px; margin-bottom: 8px; font-weight: 600; }
+        .time-date { font-family: 'Playfair Display', serif; font-size: 20px; color: #E0A96D; font-weight: 700; font-style: italic; }
+        .time-highlight { font-family: 'Jost', sans-serif; font-size: 22px; color: #D9727F; font-weight: 600; letter-spacing: 3px; margin-bottom: 15px; }
+        .time-caption { display: block; margin-bottom: 5px; color: rgba(92, 65, 93, 0.5); font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 2px; }
+        .time-display { font-size: 38px; font-weight: 700; font-family: 'Jost', sans-serif; letter-spacing: 4px; color: #5C415D; opacity: 0.85; line-height: 1; }
         .time-blink { animation: blink 1.5s infinite ease-in-out; color: #D9727F; }
 
         .hero-title { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; pointer-events: auto; }
@@ -239,7 +249,15 @@
         @media (max-width: 600px) {
             h1 { font-size: 50px; } h1 span { font-size: 30px; } .hero-title { top: 35%; }
             .btn-group { top: 58%; flex-direction: column; width: 70%; gap: 15px;}
-            .time-widget { top: 25px; right: 25px; } .time-display { font-size: 36px; } .birthday-label { font-size: 13px; letter-spacing: 2px;}
+
+            /* 移动端时钟挂件微调 */
+            .time-widget { top: 25px; right: 25px; padding-bottom: 10px; }
+            .time-line { font-size: 13px; letter-spacing: 1px; margin-bottom: 5px; }
+            .time-date { font-size: 17px; }
+            .time-highlight { font-size: 18px; letter-spacing: 2px; margin-bottom: 10px; }
+            .time-caption { font-size: 11px; letter-spacing: 1px; margin-bottom: 3px; }
+            .time-display { font-size: 30px; }
+
             .cute-cat { width: 75px; height: 75px; bottom: -10px; } .cat-eye { top: 34px; left: 22px; width: 4.5px; height: 4.5px; } .cat-eye.right { right: 22px; }
             .cute-deco { opacity: 0.5; } #swipeHint { bottom: 200px; } .letter-paper { padding: 30px; }
             .letter-link { padding: 8px 16px; font-size: 13px; }
@@ -293,7 +311,9 @@
 
         <div class="transition-wrapper" id="cardWrapper">
             <div class="time-widget" id="timeWidget">
-                <span class="birthday-label">今天是你的生日</span>
+                <div class="time-line">今天是 <span class="time-date">4月25日</span></div>
+                <div class="time-line time-highlight">是你的生日！</div>
+                <span class="time-caption">现在的时间是：</span>
                 <div class="time-display"><span id="hour">00</span><span class="time-blink">:</span><span id="minute">00</span></div>
             </div>
             <div class="hero-title">
@@ -734,10 +754,10 @@
          /\\_______/\\
         /   <span style="color:#2ed573;">${eye}</span>   <span style="color:#2ed573;">${eye}</span>   \\
        (  ==  ^  ==  )
-        )           (
        (             )
-      ( (  )   (  ) )
-     (__(__)___(__)__)  <span style="color:#D9727F;">&lt; 喵~</span>
+       (             )
+       (  (  ) (  )  )
+       (__(__)_(__)__)  <span style="color:#D9727F;">&lt; 喵~</span>
 </div>`;
             }, 100);
         }
@@ -786,6 +806,10 @@
 
             termContent.innerHTML = '';
             renderAnimatedAscii();
+            await sleep(900);
+            termContent.appendChild(document.createElement('br'));
+            termContent.appendChild(document.createElement('br'));
+            await printLine("> Happy Birthday, Risu. Love, sw.", { glitch: 1, glitchSpeed: 30, typeDelay: 95 });
             isTyping = false;
         }
 
